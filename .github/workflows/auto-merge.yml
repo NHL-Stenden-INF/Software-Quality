@@ -1,0 +1,64 @@
+name: Auto Merge & Version Bump
+
+on:  
+  workflow_run:  
+    workflows: ["Maven Build and Test"]  
+    types:  
+      - completed  
+
+jobs:  
+  merge_and_version:  
+    runs-on: ubuntu-latest  
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  
+
+    steps:  
+      - name: Checkout Repository  
+        uses: actions/checkout@v3  
+        with:  
+          token: ${{ secrets.GITHUB_TOKEN }}  
+
+      - name: Setup Git  
+        run: |  
+          git config --global user.name "github-actions[bot]"  
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"  
+
+      - name: Update Version Number  
+        run: |  
+          BRANCH=$(echo $GITHUB_REF | sed 's|refs/heads/||')
+          if [ "$BRANCH" == "develop" ]; then  
+            mvn versions:set -DnewVersion=1.0.${{ github.run_number }}-SNAPSHOT  
+          elif [ "$BRANCH" == "test" ]; then  
+            mvn versions:set -DnewVersion=1.1.${{ github.run_number }}-BETA  
+          elif [ "$BRANCH" == "acceptance" ]; then  
+            mvn versions:set -DnewVersion=1.2.${{ github.run_number }}-RC  
+          elif [ "$BRANCH" == "main" ]; then  
+            mvn versions:set -DnewVersion=1.3.${{ github.run_number }}  
+          fi  
+          mvn versions:commit  
+
+      - name: Commit and Push Version Bump  
+        run: |  
+          git add pom.xml  
+          git commit -m "Auto-increment version number" || echo "No changes to commit"  
+          git push origin $GITHUB_REF  
+
+      - name: Merge `develop` → `test`  
+        if: github.ref == 'refs/heads/develop'  
+        run: |  
+          git checkout test  
+          git merge develop --no-edit  
+          git push origin test  
+
+      - name: Merge `test` → `acceptance`  
+        if: github.ref == 'refs/heads/test'  
+        run: |  
+          git checkout acceptance  
+          git merge test --no-edit  
+          git push origin acceptance  
+
+      - name: Merge `acceptance` → `main`  
+        if: github.ref == 'refs/heads/acceptance'  
+        run: |  
+          git checkout main  
+          git merge acceptance --no-edit  
+          git push origin main  
