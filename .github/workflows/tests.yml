@@ -1,0 +1,30 @@
+name: JavaFX Application Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:stable-dind
+        options: --privileged
+        ports:
+          - 2376:2375
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and run Docker container
+        run: |
+          docker-compose build
+          docker-compose up -d
+          docker-compose exec app mvn test  # Adjust for your build system and test commands

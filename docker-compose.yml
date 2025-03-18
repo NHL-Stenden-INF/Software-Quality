@@ -1,0 +1,10 @@
+services:
+  javafx-app:
+    build: .
+    container_name: javafx_container
+    network_mode: "host" 
+    environment:
+      - DISPLAY=${DISPLAY} 
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix  
+    privileged: true  
