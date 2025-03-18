@@ -20,38 +20,40 @@ RUN apt-get update && apt-get install -y --fix-missing \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Ensure JavaFX SDK is available in case openjfx package is missing some dependencies
+# Download and extract JavaFX SDK
 RUN wget -O javafx-sdk.zip https://download2.gluonhq.com/openjfx/17.0.2/openjfx-17.0.2_linux-x64_bin-sdk.zip && \
     unzip javafx-sdk.zip -d /usr/share/javafx && \
     rm javafx-sdk.zip
 
-# Copy the project files (assuming Maven structure)
+# Copy project files into the container
 COPY . .
 
-# If no JavaFX app exists, create a basic one
-RUN if [ ! -d "src" ]; then \
+# Ensure JavaFX test project exists if missing
+RUN if [ ! -f src/main/java/com/example/MainApp.java ]; then \
     mkdir -p src/main/java/com/example && \
-    echo 'package com.example; \
-    import javafx.application.Application; \
-    import javafx.scene.Scene; \
-    import javafx.scene.control.Label; \
-    import javafx.stage.Stage; \
-    public class MainApp extends Application { \
-        @Override public void start(Stage stage) { \
-            Label label = new Label("Hello, JavaFX in Docker!"); \
-            Scene scene = new Scene(label, 400, 200); \
-            stage.setTitle("JavaFX App"); \
-            stage.setScene(scene); \
-            stage.show(); \
-        } \
-        public static void main(String[] args) { launch(args); } \
-    }' > src/main/java/com/example/MainApp.java; \
-    fi
+    echo 'package com.example;' > src/main/java/com/example/MainApp.java && \
+    echo 'import javafx.application.Application;' >> src/main/java/com/example/MainApp.java && \
+    echo 'import javafx.scene.Scene;' >> src/main/java/com/example/MainApp.java && \
+    echo 'import javafx.scene.control.Label;' >> src/main/java/com/example/MainApp.java && \
+    echo 'import javafx.stage.Stage;' >> src/main/java/com/example/MainApp.java && \
+    echo 'public class MainApp extends Application {' >> src/main/java/com/example/MainApp.java && \
+    echo '    @Override' >> src/main/java/com/example/MainApp.java && \
+    echo '    public void start(Stage stage) {' >> src/main/java/com/example/MainApp.java && \
+    echo '        Label label = new Label(\"Hello, JavaFX in Docker!\");' >> src/main/java/com/example/MainApp.java && \
+    echo '        Scene scene = new Scene(label, 400, 200);' >> src/main/java/com/example/MainApp.java && \
+    echo '        stage.setTitle(\"JavaFX App\");' >> src/main/java/com/example/MainApp.java && \
+    echo '        stage.setScene(scene);' >> src/main/java/com/example/MainApp.java && \
+    echo '        stage.show();' >> src/main/java/com/example/MainApp.java && \
+    echo '    }' >> src/main/java/com/example/MainApp.java && \
+    echo '    public static void main(String[] args) { launch(args); }' >> src/main/java/com/example/MainApp.java && \
+    echo '}' >> src/main/java/com/example/MainApp.java; \
+fi
 
-# Ensure Maven builds the project
-RUN if [ ! -f "target/app.jar" ]; then \
-    mvn clean package; \
-    fi
-
-# Set up display and execute the application
-CMD ["bash", "-c", "Xvfb :99 -screen 0 1024x768x24 & export DISPLAY=:99 && java --module-path /usr/share/javafx/lib --add-modules javafx.controls,javafx.fxml -jar target/app.jar"]
+# At runtime, ensure the app is built and launch it with the correct DISPLAY settings
+CMD ["bash", "-c", "\
+echo 'Checking DISPLAY variable...' && \
+if [ -z \"$DISPLAY\" ]; then export DISPLAY=host.docker.internal:0.0; fi && \
+echo 'Using DISPLAY=' $DISPLAY && \
+if [ ! -f target/app.jar ]; then echo 'Building JavaFX app...'; mvn clean package; fi && \
+echo 'Launching JavaFX...' && \
+java --module-path /usr/share/javafx/javafx-sdk-17.0.2/lib --add-modules javafx.controls,javafx.fxml -jar target/app.jar"]
