@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<presentation title="Default Presentation">
+    <slide title="Slide 1: Welcome" background="file:resources/images/slide-bg.jpg">
+        <text>Welkom! If you read this correctly its from the xml file!</text>
+    </slide>
+    <slide title="Slide 2: Instructions">
+        <text>Use the View menu or arrow keys to navigate, but you know that since you here.</text>
+    </slide>
+    <slide title="Slide 3: Farewell">
+        <text>Goodbye, weary traveler!</text>
+    </slide>
+</presentation>
