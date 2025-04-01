@@ -22,20 +22,22 @@ jobs:
       - name: "Build with Maven"
         run: mvn clean verify
 
-  pr-development-to-acceptance:
+  merge-development-to-acceptance:
     if: github.ref == 'refs/heads/development'
     needs: build-development
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: "Create PR: development -> acceptance"
-        uses: peter-evans/create-pull-request@v5
         with:
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: acceptance
-          branch: "pr-acceptance-${{ github.run_number }}"
-          title: "Merge development into acceptance"
-          body: "Automated pull request from development to acceptance."
+      - name: "Merge development into acceptance"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git checkout acceptance
+          git merge --no-ff origin/development -m "Automatic merge from development to acceptance"
+          git push origin acceptance
 
   acceptance-ci:
     if: github.ref == 'refs/heads/acceptance'
@@ -51,20 +53,22 @@ jobs:
       - name: "Run Checkstyle"
         run: mvn checkstyle:check
 
-  pr-acceptance-to-test:
+  merge-acceptance-to-test:
     if: github.ref == 'refs/heads/acceptance'
     needs: acceptance-ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: "Create PR: acceptance -> test"
-        uses: peter-evans/create-pull-request@v5
         with:
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: test
-          branch: "pr-test-${{ github.run_number }}"
-          title: "Merge acceptance into test"
-          body: "Automated pull request from acceptance to test."
+      - name: "Merge acceptance into test"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git checkout test
+          git merge --no-ff origin/acceptance -m "Automatic merge from acceptance to test"
+          git push origin test
 
   test-ci:
     if: github.ref == 'refs/heads/test'
@@ -80,17 +84,19 @@ jobs:
       - name: "Run Unit Tests"
         run: mvn test
 
-  pr-test-to-production:
+  merge-test-to-production:
     if: github.ref == 'refs/heads/test'
     needs: test-ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: "Create PR: test -> production"
-        uses: peter-evans/create-pull-request@v5
         with:
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: production
-          branch: "pr-production-${{ github.run_number }}"
-          title: "Merge test into production"
-          body: "Automated pull request from test to production."
+      - name: "Merge test into production"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git checkout production
+          git merge --no-ff origin/test -m "Automatic merge from test to production"
+          git push origin production
