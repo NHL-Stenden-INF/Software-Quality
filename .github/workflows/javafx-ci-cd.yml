@@ -2,29 +2,87 @@ name: JavaFX CI/CD
 
 on:
   push:
-    branches: [ main, development, test, acceptance, production ]
+    branches: [development, acceptance, test]
   pull_request:
-    branches: [ main, development, test, acceptance, production ]
+    branches: [development, acceptance, test]
 
 jobs:
-  build-and-test:
+  build-development:
+    if: github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up JDK 11
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven
+        run: mvn clean verify
 
-    - name: Build with Maven
-      run: mvn clean verify
+  merge-to-acceptance:
+    needs: build-development
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge to acceptance branch
+        uses: peter-evans/merge-branch@v2
+        with:
+          source: development
+          destination: acceptance
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: jabberpoint-app
-        path: target/*.jar
+  check-acceptance:
+    needs: merge-to-acceptance
+    if: github.ref == 'refs/heads/acceptance'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run Checkstyle
+        run: mvn checkstyle:check
+
+  merge-to-test:
+    needs: check-acceptance
+    if: github.ref == 'refs/heads/acceptance'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge to test branch
+        uses: peter-evans/merge-branch@v2
+        with:
+          source: acceptance
+          destination: test
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-on-test:
+    needs: merge-to-test
+    if: github.ref == 'refs/heads/test'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run Unit Tests
+        run: mvn test
+
+  merge-to-production:
+    needs: test-on-test
+    if: github.ref == 'refs/heads/test'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge to production branch
+        uses: peter-evans/merge-branch@v2
+        with:
+          source: test
+          destination: production
+          github-token: ${{ secrets.GITHUB_TOKEN }}

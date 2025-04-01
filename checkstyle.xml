@@ -3,26 +3,16 @@
           "-//Checkstyle Configuration V1.0//EN"
           "https://checkstyle.org/dtds/configuration_1_0.dtd">
 <module name="Checker">
-    <!-- Severity level: error, warning, info -->
     <property name="severity" value="warning"/>
-
-    <!-- File extensions to check -->
     <property name="fileExtensions" value="java"/>
-
-    <!-- Checks for size violations -->
     <module name="FileLength">
         <property name="max" value="500"/>
     </module>
-    
-    <!-- Line Length check should be here, directly under Checker -->
     <module name="LineLength">
         <property name="max" value="120"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href"/>
     </module>
-
-    <!-- Tree walker for detailed Java checks -->
     <module name="TreeWalker">
-        <!-- Naming Conventions -->
         <module name="ConstantName"/>
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
@@ -31,22 +21,16 @@
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
-
-        <!-- Import Checks -->
         <module name="AvoidStarImport"/>
         <module name="IllegalImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
-
-        <!-- Size Violations -->
         <module name="MethodLength">
             <property name="max" value="50"/>
         </module>
         <module name="ParameterNumber">
             <property name="max" value="5"/>
         </module>
-
-        <!-- Whitespace Checks -->
         <module name="EmptyForIteratorPad"/>
         <module name="GenericWhitespace"/>
         <module name="MethodParamPad"/>
@@ -57,12 +41,8 @@
         <module name="TypecastParenPad"/>
         <module name="WhitespaceAfter"/>
         <module name="WhitespaceAround"/>
-
-        <!-- Modifier Checks -->
         <module name="ModifierOrder"/>
         <module name="RedundantModifier"/>
-
-        <!-- Coding Practices -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="HiddenField">
@@ -78,8 +58,6 @@
         <module name="MultipleVariableDeclarations"/>
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
-
-        <!-- Design Checks -->
         <module name="FinalClass"/>
         <module name="HideUtilityClassConstructor"/>
         <module name="InterfaceIsType"/>
