@@ -21,17 +21,20 @@ jobs:
       - name: Build with Maven
         run: mvn clean verify
 
-  merge-to-acceptance:
-    needs: build-development
-    if: github.ref == 'refs/heads/development'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Merge to acceptance branch
-        uses: peter-evans/merge-branch@v2
-        with:
-          source: development
-          destination: acceptance
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      merge-to-acceptance:
+        needs: build-development
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Create pull request for acceptance
+            uses: peter-evans/create-pull-request@v5
+            with:
+              token: ${{ secrets.GITHUB_TOKEN }}
+              base: acceptance
+              branch: development
+              title: "Merge development -> acceptance"
+              body: "Automated merge from development to acceptance."
+      
 
   check-acceptance:
     needs: merge-to-acceptance
