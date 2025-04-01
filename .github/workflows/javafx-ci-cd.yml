@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
@@ -23,15 +26,24 @@ jobs:
           cache: maven
       - name: "Build with Maven"
         run: mvn clean verify
-      - name: "Setup Git for Merge"
+      - name: "Merge development into acceptance"
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-      - name: "Merge development into acceptance"
-        run: |
-          git fetch origin acceptance:acceptance
-          git checkout acceptance
-          git merge --no-ff origin/development -m "Automatic merge from development to acceptance"
+          
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if acceptance branch exists, if not create it
+          if ! git ls-remote --heads origin acceptance | grep acceptance; then
+            git checkout -b acceptance
+            git push origin acceptance
+          else
+            git checkout -b acceptance origin/acceptance
+          fi
+          
+          # Try to merge with allowing unrelated histories
+          git merge --allow-unrelated-histories --no-ff origin/development -m "Automatic merge from development to acceptance"
           git push origin acceptance
 
   # ACCEPTANCE BRANCH WORKFLOW
@@ -40,6 +52,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
@@ -48,15 +63,24 @@ jobs:
           cache: maven
       - name: "Run Checkstyle"
         run: mvn checkstyle:check
-      - name: "Setup Git for Merge"
+      - name: "Merge acceptance into test"
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-      - name: "Merge acceptance into test"
-        run: |
-          git fetch origin test:test
-          git checkout test
-          git merge --no-ff origin/acceptance -m "Automatic merge from acceptance to test"
+          
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if test branch exists, if not create it
+          if ! git ls-remote --heads origin test | grep test; then
+            git checkout -b test
+            git push origin test
+          else
+            git checkout -b test origin/test
+          fi
+          
+          # Try to merge with allowing unrelated histories
+          git merge --allow-unrelated-histories --no-ff origin/acceptance -m "Automatic merge from acceptance to test"
           git push origin test
 
   # TEST BRANCH WORKFLOW
@@ -65,6 +89,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
@@ -73,15 +100,24 @@ jobs:
           cache: maven
       - name: "Run Unit Tests"
         run: mvn test
-      - name: "Setup Git for Merge"
+      - name: "Merge test into production"
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-      - name: "Merge test into production"
-        run: |
-          git fetch origin production:production
-          git checkout production
-          git merge --no-ff origin/test -m "Automatic merge from test to production"
+          
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if production branch exists, if not create it
+          if ! git ls-remote --heads origin production | grep production; then
+            git checkout -b production
+            git push origin production
+          else
+            git checkout -b production origin/production
+          fi
+          
+          # Try to merge with allowing unrelated histories
+          git merge --allow-unrelated-histories --no-ff origin/test -m "Automatic merge from test to production"
           git push origin production
 
   # PRODUCTION BRANCH WORKFLOW
@@ -90,6 +126,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
