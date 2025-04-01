@@ -25,6 +25,7 @@ public class App extends Application {
 
     private Presentation presentation;
     private SlideViewerFrame viewerFrame;
+    private BorderPane root; // Store the main layout
     private XMLAccessor xmlAccessor = new XMLAccessor();
 
     @Override
@@ -39,7 +40,7 @@ public class App extends Application {
         presentation.setTitle("JabberPoint 2.0");
 
         // Main layout
-        BorderPane root = new BorderPane();
+        root = new BorderPane();
 
         // Create the menu bar and set it at the top.
         MenuBar menuBar = createMenuBar(primaryStage);
@@ -86,8 +87,12 @@ public class App extends Application {
             if (selectedFile != null) {
                 Presentation loadedPresentation = xmlAccessor.loadPresentation(selectedFile.getAbsolutePath());
                 if (loadedPresentation != null) {
+                    // Register the observer on the new presentation.
+                    loadedPresentation.addObserver(viewerFrame);
                     presentation = loadedPresentation;
-                    viewerFrame.update();
+                    // Recreate the viewerFrame with the new presentation and set it as the center.
+                    viewerFrame = new SlideViewerFrame(presentation);
+                    root.setCenter(viewerFrame);
                     stage.setTitle(presentation.getTitle());
                 }
             }
