@@ -6,10 +6,23 @@ on:
       - development
       - acceptance
       - test
+      - production
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the workflow on'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - acceptance
+          - test
+          - production
 
 jobs:
   build-development:
-    if: github.ref == 'refs/heads/development'
+    if: github.ref == 'refs/heads/development' || github.event.inputs.branch == 'development'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +36,7 @@ jobs:
         run: mvn clean verify
 
   merge-development-to-acceptance:
-    if: github.ref == 'refs/heads/development'
+    if: github.ref == 'refs/heads/development' || github.event.inputs.branch == 'development'
     needs: build-development
     runs-on: ubuntu-latest
     steps:
@@ -38,9 +51,23 @@ jobs:
           git checkout acceptance
           git merge --no-ff origin/development -m "Automatic merge from development to acceptance"
           git push origin acceptance
+      - name: "Trigger acceptance workflow"
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'javafx-cicd.yml',
+              ref: 'acceptance',
+              inputs: {
+                branch: 'acceptance'
+              }
+            });
 
   acceptance-ci:
-    if: github.ref == 'refs/heads/acceptance'
+    if: github.ref == 'refs/heads/acceptance' || github.event.inputs.branch == 'acceptance'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +81,7 @@ jobs:
         run: mvn checkstyle:check
 
   merge-acceptance-to-test:
-    if: github.ref == 'refs/heads/acceptance'
+    if: github.ref == 'refs/heads/acceptance' || github.event.inputs.branch == 'acceptance'
     needs: acceptance-ci
     runs-on: ubuntu-latest
     steps:
@@ -69,9 +96,23 @@ jobs:
           git checkout test
           git merge --no-ff origin/acceptance -m "Automatic merge from acceptance to test"
           git push origin test
+      - name: "Trigger test workflow"
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'javafx-cicd.yml',
+              ref: 'test',
+              inputs: {
+                branch: 'test'
+              }
+            });
 
   test-ci:
-    if: github.ref == 'refs/heads/test'
+    if: github.ref == 'refs/heads/test' || github.event.inputs.branch == 'test'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +126,7 @@ jobs:
         run: mvn test
 
   merge-test-to-production:
-    if: github.ref == 'refs/heads/test'
+    if: github.ref == 'refs/heads/test' || github.event.inputs.branch == 'test'
     needs: test-ci
     runs-on: ubuntu-latest
     steps:
@@ -100,3 +141,31 @@ jobs:
           git checkout production
           git merge --no-ff origin/test -m "Automatic merge from test to production"
           git push origin production
+      - name: "Trigger production workflow"
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'javafx-cicd.yml',
+              ref: 'production',
+              inputs: {
+                branch: 'production'
+              }
+            });
+
+  production-deploy:
+    if: github.ref == 'refs/heads/production' || github.event.inputs.branch == 'production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set up JDK 11"
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: "Build production package"
+        run: mvn clean package
