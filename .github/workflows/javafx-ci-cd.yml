@@ -2,9 +2,10 @@ name: JavaFX CI/CD
 
 on:
   push:
-    branches: [development, acceptance, test]
-  pull_request:
-    branches: [development, acceptance, test]
+    branches:
+      - development
+      - acceptance
+      - test
 
 jobs:
   build-development:
@@ -21,12 +22,13 @@ jobs:
       - name: "Build with Maven"
         run: mvn clean verify
 
-  create-pr-acceptance:
+  pr-development-to-acceptance:
+    if: github.ref == 'refs/heads/development'
     needs: build-development
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: "Create pull request: development → acceptance"
+      - name: "Create PR: development -> acceptance"
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -36,7 +38,7 @@ jobs:
           body: "Automated pull request from development to acceptance."
 
   acceptance-ci:
-    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'acceptance'
+    if: github.ref == 'refs/heads/acceptance'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,12 +51,13 @@ jobs:
       - name: "Run Checkstyle"
         run: mvn checkstyle:check
 
-  create-pr-test:
+  pr-acceptance-to-test:
+    if: github.ref == 'refs/heads/acceptance'
     needs: acceptance-ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: "Create pull request: acceptance → test"
+      - name: "Create PR: acceptance -> test"
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -64,7 +67,7 @@ jobs:
           body: "Automated pull request from acceptance to test."
 
   test-ci:
-    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'test'
+    if: github.ref == 'refs/heads/test'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,12 +80,13 @@ jobs:
       - name: "Run Unit Tests"
         run: mvn test
 
-  create-pr-production:
+  pr-test-to-production:
+    if: github.ref == 'refs/heads/test'
     needs: test-ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: "Create pull request: test → production"
+      - name: "Create PR: test -> production"
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
