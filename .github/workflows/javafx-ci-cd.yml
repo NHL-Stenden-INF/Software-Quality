@@ -7,25 +7,17 @@ on:
       - acceptance
       - test
       - production
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run the workflow on'
-        required: true
-        default: 'development'
-        type: choice
-        options:
-          - development
-          - acceptance
-          - test
-          - production
 
 jobs:
+  # DEVELOPMENT BRANCH WORKFLOW
   build-development:
-    if: github.ref == 'refs/heads/development' || github.event.inputs.branch == 'development'
+    if: github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
@@ -34,43 +26,35 @@ jobs:
           cache: maven
       - name: "Build with Maven"
         run: mvn clean verify
+      - name: "Merge development into acceptance"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if acceptance branch exists, if not create it
+          if ! git ls-remote --heads origin acceptance | grep acceptance; then
+            git checkout -b acceptance
+            git push origin acceptance
+          else
+            git checkout -b acceptance origin/acceptance
+          fi
+          
+          # Try to merge with allowing unrelated histories
+          git merge --allow-unrelated-histories --no-ff origin/development -m "Automatic merge from development to acceptance"
+          git push origin acceptance
 
-  merge-development-to-acceptance:
-    if: github.ref == 'refs/heads/development' || github.event.inputs.branch == 'development'
-    needs: build-development
+  # ACCEPTANCE BRANCH WORKFLOW
+  acceptance-ci:
+    if: github.ref == 'refs/heads/acceptance'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Merge development into acceptance"
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git checkout acceptance
-          git merge --no-ff origin/development -m "Automatic merge from development to acceptance"
-          git push origin acceptance
-      - name: "Trigger acceptance workflow"
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'javafx-cicd.yml',
-              ref: 'acceptance',
-              inputs: {
-                branch: 'acceptance'
-              }
-            });
-
-  acceptance-ci:
-    if: github.ref == 'refs/heads/acceptance' || github.event.inputs.branch == 'acceptance'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
@@ -79,43 +63,35 @@ jobs:
           cache: maven
       - name: "Run Checkstyle"
         run: mvn checkstyle:check
+      - name: "Merge acceptance into test"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if test branch exists, if not create it
+          if ! git ls-remote --heads origin test | grep test; then
+            git checkout -b test
+            git push origin test
+          else
+            git checkout -b test origin/test
+          fi
+          
+          # Try to merge with allowing unrelated histories
+          git merge --allow-unrelated-histories --no-ff origin/acceptance -m "Automatic merge from acceptance to test"
+          git push origin test
 
-  merge-acceptance-to-test:
-    if: github.ref == 'refs/heads/acceptance' || github.event.inputs.branch == 'acceptance'
-    needs: acceptance-ci
+  # TEST BRANCH WORKFLOW
+  test-ci:
+    if: github.ref == 'refs/heads/test'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Merge acceptance into test"
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git checkout test
-          git merge --no-ff origin/acceptance -m "Automatic merge from acceptance to test"
-          git push origin test
-      - name: "Trigger test workflow"
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'javafx-cicd.yml',
-              ref: 'test',
-              inputs: {
-                branch: 'test'
-              }
-            });
-
-  test-ci:
-    if: github.ref == 'refs/heads/test' || github.event.inputs.branch == 'test'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
@@ -124,43 +100,34 @@ jobs:
           cache: maven
       - name: "Run Unit Tests"
         run: mvn test
+      - name: "Merge test into production"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if production branch exists, if not create it
+          if ! git ls-remote --heads origin production | grep production; then
+            git checkout -b production
+            git push origin production
+          else
+            git checkout -b production origin/production
+          fi
+          
+          # Try to merge with allowing unrelated histories
+          git merge --allow-unrelated-histories --no-ff origin/test -m "Automatic merge from test to production"
+          git push origin production
 
-  merge-test-to-production:
-    if: github.ref == 'refs/heads/test' || github.event.inputs.branch == 'test'
-    needs: test-ci
+  # PRODUCTION BRANCH WORKFLOW
+  production-deploy:
+    if: github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Merge test into production"
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git checkout production
-          git merge --no-ff origin/test -m "Automatic merge from test to production"
-          git push origin production
-      - name: "Trigger production workflow"
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'javafx-cicd.yml',
-              ref: 'production',
-              inputs: {
-                branch: 'production'
-              }
-            });
-
-  production-deploy:
-    if: github.ref == 'refs/heads/production' || github.event.inputs.branch == 'production'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
