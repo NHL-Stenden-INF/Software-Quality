@@ -13,6 +13,12 @@
     <module name="FileLength">
         <property name="max" value="500"/>
     </module>
+    
+    <!-- Line Length check should be here, directly under Checker -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href"/>
+    </module>
 
     <!-- Tree walker for detailed Java checks -->
     <module name="TreeWalker">
@@ -33,10 +39,6 @@
         <module name="UnusedImports"/>
 
         <!-- Size Violations -->
-        <module name="LineLength">
-            <property name="max" value="120"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href"/>
-        </module>
         <module name="MethodLength">
             <property name="max" value="50"/>
         </module>
