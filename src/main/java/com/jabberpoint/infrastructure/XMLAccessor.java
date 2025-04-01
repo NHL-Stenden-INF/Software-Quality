@@ -2,11 +2,13 @@ package com.jabberpoint.infrastructure;
 
 import com.jabberpoint.model.Presentation;
 import com.jabberpoint.model.Slide;
+import com.jabberpoint.model.SlideItem;
 import com.jabberpoint.model.TextItem;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
+import java.io.FileWriter;
 
 public class XMLAccessor implements Accessor {
 
@@ -63,9 +65,54 @@ public class XMLAccessor implements Accessor {
         return presentation;
     }
 
+    // Helper method to escape XML special characters
+    private String escapeXML(String input) {
+        if (input == null) return "";
+        return input.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
+
     @Override
     public void savePresentation(Presentation presentation, String destination) {
-        // WIP 
-        System.out.println("Saving presentation not implemented.");
+        File file = new File(destination);
+
+        try (FileWriter writer = new FileWriter(file)) {
+            // Write XML declaration
+            writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            writer.write("<presentation title=\"" + escapeXML(presentation.getTitle()) + "\">\n");
+
+            // Save slides
+            for (Slide slide : presentation.getSlides()) {
+                writer.write("  <slide title=\"" + escapeXML(slide.getTitle()) + "\"");
+
+                // Add background attribute if it exists
+                if (slide.getBackgroundImage() != null && !slide.getBackgroundImage().isEmpty()) {
+                    writer.write(" background=\"" + escapeXML(slide.getBackgroundImage()) + "\"");
+                }
+
+                writer.write(">\n");
+
+                // Save slide items
+                for (SlideItem item : slide.getItems()) {
+                    // Only saves text items
+                    if (item instanceof TextItem) {
+                        TextItem textItem = (TextItem) item;
+                        writer.write("    <text>" + escapeXML(textItem.getText()) + "</text>\n");
+                    }
+                }
+
+                writer.write("  </slide>\n");
+            }
+
+            writer.write("</presentation>");
+
+            System.out.println("File saved: " + file.getAbsolutePath());
+        } catch (Exception e) {
+            System.err.println("Error saving presentation: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
