@@ -6,7 +6,7 @@ import java.util.List;
 public class Slide {
     private String title;
     private List<SlideItem> items;
-    private String backgroundImage;
+    private BackgroundItem background;
 
     public Slide(String title) {
         this.title = title;
@@ -26,11 +26,23 @@ public class Slide {
         return items;
     }
 
+    public BackgroundItem getBackground() {
+        return background;
+    }
+
+    public void setBackground(BackgroundItem background) {
+        this.background = background;
+    }
+
     public String getBackgroundImage() {
-        return backgroundImage;
+        return (background != null) ? background.getBackgroundPath() : null;
     }
 
     public void setBackgroundImage(String backgroundImage) {
-        this.backgroundImage = backgroundImage;
-    }    
+        if (background == null) {
+            this.background = new BackgroundItem(backgroundImage);
+        } else {
+            this.background.setBackgroundPath(backgroundImage);
+        }
+    }
 }
