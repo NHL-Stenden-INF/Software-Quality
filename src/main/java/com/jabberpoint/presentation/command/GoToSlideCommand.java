@@ -2,6 +2,9 @@ package com.jabberpoint.presentation.command;
 
 import com.jabberpoint.command.Command;
 import com.jabberpoint.model.Presentation;
+import com.jabberpoint.model.SlideItem;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GoToSlideCommand implements Command {
 
@@ -15,10 +18,12 @@ public class GoToSlideCommand implements Command {
 
     @Override
     public void execute() {
-        // Go to a specific slide (ensure bounds checking)
         if (slideNumber >= 0 && slideNumber < presentation.getSlides().size()) {
-            // Directly set the slide index
-            System.out.println("Going to slide " + slideNumber);
+            presentation.setCurrentSlideIndex(slideNumber);
         }
+    }
+
+    public List<SlideItem> getItems() {
+        return new ArrayList<>(presentation.getSlides().get(slideNumber).getItems());  // Defensive copy
     }
 }

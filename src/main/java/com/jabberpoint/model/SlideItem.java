@@ -20,5 +20,13 @@ public abstract class SlideItem {
         return style;
     }
 
+    public void setStyle(Style style) {
+        this.style = style;
+    }
+
+    public boolean isValid() {
+        return text != null && !text.trim().isEmpty() && style != null;
+    }
+
     public abstract void draw(GraphicsContext gc, double width, double height);
 }
