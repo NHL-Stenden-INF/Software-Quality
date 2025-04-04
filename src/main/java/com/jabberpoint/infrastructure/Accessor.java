@@ -1,6 +1,6 @@
 package com.jabberpoint.infrastructure;
 
-import com.jabberpoint.model.Presentation;
+import com.jabberpoint.patterns.composite.Presentation;
 
 public interface Accessor {
     Presentation loadPresentation(String source);

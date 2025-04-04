@@ -1,16 +1,17 @@
 package com.jabberpoint;
 
-import com.jabberpoint.controller.KeyController;
-import com.jabberpoint.controller.MenuController;
 import com.jabberpoint.infrastructure.XMLAccessor;
-import com.jabberpoint.model.Presentation;
-import com.jabberpoint.model.Slide;
-import com.jabberpoint.model.BodyTextItem;
-import com.jabberpoint.view.SlideViewerFrame;
-import com.jabberpoint.entities.Style;
-import com.jabberpoint.entities.FontName;
-import com.jabberpoint.entities.FontSize;
-import com.jabberpoint.entities.FontColor;
+import com.jabberpoint.patterns.composite.BodyTextItem;
+import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.patterns.composite.Slide;
+import com.jabberpoint.style.FontColor;
+import com.jabberpoint.style.FontName;
+import com.jabberpoint.style.FontSize;
+import com.jabberpoint.style.Style;
+import com.jabberpoint.ui.controller.KeyController;
+import com.jabberpoint.ui.controller.MenuController;
+import com.jabberpoint.ui.view.SlideViewerFrame;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -21,7 +22,7 @@ public class App extends Application {
     private Presentation presentation;
     private SlideViewerFrame viewerFrame;
     private BorderPane root;
-    private XMLAccessor xmlAccessor = new XMLAccessor();
+    private final XMLAccessor xmlAccessor = new XMLAccessor();
 
     @Override
     public void start(Stage primaryStage) {

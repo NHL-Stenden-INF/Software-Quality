@@ -1,13 +1,21 @@
 package com.jabberpoint.infrastructure;
 
-import com.jabberpoint.model.*;
-import com.jabberpoint.entities.Style;
-import com.jabberpoint.entities.FontName;
-import com.jabberpoint.entities.FontSize;
-import com.jabberpoint.entities.FontColor;
-import com.jabberpoint.presentation.StyleManager;
-import com.jabberpoint.factory.ConcreteSlideItemFactory;
-import com.jabberpoint.entities.ItemType;
+import com.jabberpoint.patterns.composite.BackgroundItem;
+import com.jabberpoint.patterns.composite.BitmapItem;
+import com.jabberpoint.patterns.composite.BodyTextItem;
+import com.jabberpoint.patterns.composite.BulletPointItem;
+import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.patterns.composite.Slide;
+import com.jabberpoint.patterns.composite.SlideItem;
+import com.jabberpoint.patterns.composite.SubtitleItem;
+import com.jabberpoint.patterns.composite.TitleItem;
+import com.jabberpoint.patterns.factory.ItemType;
+import com.jabberpoint.patterns.factory.SlideItemFactory;
+import com.jabberpoint.style.FontColor;
+import com.jabberpoint.style.FontName;
+import com.jabberpoint.style.FontSize;
+import com.jabberpoint.style.Style;
+import com.jabberpoint.style.StyleManager;
 
 import org.w3c.dom.*;
 
@@ -15,8 +23,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class XMLAccessor implements Accessor {
+    private static final Logger LOGGER = Logger.getLogger(XMLAccessor.class.getName());
 
     @Override
     public Presentation loadPresentation(String source) {
@@ -44,7 +56,7 @@ public class XMLAccessor implements Accessor {
                 presentation.addSlide(slide);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error loading presentation: " + e.getMessage(), e);
             return null;
         }
         return presentation;
@@ -79,19 +91,19 @@ public class XMLAccessor implements Accessor {
 
         switch (tagName) {
             case "title":
-                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.TITLE, content, style));
+                slide.addItem(SlideItemFactory.createSlideItem(ItemType.TITLE, content, style));
                 break;
             case "subtitle":
-                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.SUBTITLE, content, style));
+                slide.addItem(SlideItemFactory.createSlideItem(ItemType.SUBTITLE, content, style));
                 break;
             case "bodyText":
-                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.TEXT, content, style));
+                slide.addItem(SlideItemFactory.createSlideItem(ItemType.TEXT, content, style));
                 break;
             case "bulletPoints":
                 processBulletPoints(elem, slide);
                 break;
-            case "bitmap": // Process bitmap items
-                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.BITMAP, content, style));
+            case "bitmap":
+                slide.addItem(SlideItemFactory.createSlideItem(ItemType.BITMAP, content, style));
                 break;
         }
     }
@@ -102,20 +114,15 @@ public class XMLAccessor implements Accessor {
             Element bulletElem = (Element) bullets.item(i);
             String text = bulletElem.getTextContent().trim();
             Style style = loadStyleFromElement(bulletElem);
-            slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.BULLET, text, style));
+            slide.addItem(SlideItemFactory.createSlideItem(ItemType.BULLET, text, style));
         }
     }
 
     private Style loadStyleFromElement(Element elem) {
-        // Parse the specific style attributes for each element
         String fontName = elem.getAttribute("fontName");
         String fontSize = elem.getAttribute("fontSize");
         String fontColor = elem.getAttribute("fontColor");
 
-        // Log the fontColor before parsing for debugging
-        System.out.println("Parsing fontColor: " + fontColor);
-
-        // Fallback-safe parsing using safe conversion for FontColor
         FontName fontNameEnum = parseEnum(FontName.class, fontName, FontName.ARIAL);
         FontSize fontSizeEnum = parseEnum(FontSize.class, fontSize, FontSize.MEDIUM);
         FontColor fontColorEnum = (fontColor == null || fontColor.isEmpty())
@@ -130,8 +137,8 @@ public class XMLAccessor implements Accessor {
         try {
             return Enum.valueOf(enumType, value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            System.err.printf("Warning: '%s' is not a valid value for %s. Using default: %s%n",
-                    value, enumType.getSimpleName(), defaultValue);
+            LOGGER.warning(String.format("'%s' is not a valid value for %s. Using default: %s",
+                    value, enumType.getSimpleName(), defaultValue));
             return defaultValue;
         }
     }
@@ -153,12 +160,12 @@ public class XMLAccessor implements Accessor {
                 writeSlide(writer, slide);
             }
             writer.write("</presentation>");
-        } catch (Exception e) {
-            System.err.println("Error saving presentation: " + e.getMessage());
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error saving presentation: " + e.getMessage(), e);
         }
     }
 
-    private void writeSlide(FileWriter writer, Slide slide) throws Exception {
+    private void writeSlide(FileWriter writer, Slide slide) throws IOException {
         writer.write(String.format("  <slide title=\"%s\"", escapeXML(slide.getTitle())));
 
         // Write background if present
@@ -168,7 +175,9 @@ public class XMLAccessor implements Accessor {
                 .ifPresent(bg -> {
                     try {
                         writer.write(String.format(" background=\"%s\"", escapeXML(((BackgroundItem) bg).getImagePath())));
-                    } catch (Exception e) { /* handle error */ }
+                    } catch (IOException e) {
+                        LOGGER.log(Level.WARNING, "Error writing background: " + e.getMessage(), e);
+                    }
                 });
 
         writer.write(">\n");
@@ -190,20 +199,21 @@ public class XMLAccessor implements Accessor {
         writer.write("  </slide>\n");
     }
 
-    private void writeBulletPoints(FileWriter writer, Slide slide) throws Exception {
+    private void writeBulletPoints(FileWriter writer, Slide slide) throws IOException {
         writer.write("    <bulletPoints>\n");
         slide.getItems().stream()
                 .filter(item -> item instanceof BulletPointItem)
                 .forEach(item -> {
                     try {
                         writer.write(String.format("      <bullet>%s</bullet>\n", escapeXML(item.getText())));
-                    } catch (Exception e) { /* handle error */ }
+                    } catch (IOException e) {
+                        LOGGER.log(Level.WARNING, "Error writing bullet point: " + e.getMessage(), e);
+                    }
                 });
         writer.write("    </bulletPoints>\n");
     }
 
-    private void writeBitmapItem(FileWriter writer, BitmapItem item) throws Exception {
-        // Retrieve the style of the item if needed
+    private void writeBitmapItem(FileWriter writer, BitmapItem item) throws IOException {
         Style style = item.getStyle();
         writer.write("    <bitmap");
         if (style != null) {
@@ -214,10 +224,9 @@ public class XMLAccessor implements Accessor {
         writer.write(String.format(">%s</bitmap>\n", escapeXML(item.getText())));
     }
 
-    private void writeStandardItem(FileWriter writer, SlideItem item) throws Exception {
+    private void writeStandardItem(FileWriter writer, SlideItem item) throws IOException {
         String tag = getItemTagName(item);
         if (tag != null) {
-            // Retrieve the style of the item
             Style style = item.getStyle();
             writer.write(String.format("    <%s", tag));
             if (style != null) {
@@ -245,12 +254,7 @@ public class XMLAccessor implements Accessor {
     }
 
     private void loadStyle(Element styleElem) {
-        String fontName = styleElem.getAttribute("fontName");
-        String fontSize = styleElem.getAttribute("fontSize");
-        String fontColor = styleElem.getAttribute("fontColor");
-
-        System.out.println("Parsing fontColor: " + fontColor);
-
-        StyleManager.loadStyleFromXML(fontName, fontSize, fontColor);
+        Style style = loadStyleFromElement(styleElem);
+        StyleManager.setCurrentStyle(style);
     }
 }
