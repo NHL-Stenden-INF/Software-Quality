@@ -2,11 +2,11 @@ package com.jabberpoint.patterns.command;
 
 import com.jabberpoint.patterns.composite.PresentationInterface;
 
-public class PrevSlideCommand implements Command {
+public class PreviousSlideCommand implements Command {
 
     private PresentationInterface presentation;
 
-    public PrevSlideCommand(PresentationInterface presentation) {
+    public PreviousSlideCommand(PresentationInterface presentation) {
         this.presentation = presentation;
     }
 
@@ -14,4 +14,4 @@ public class PrevSlideCommand implements Command {
     public void execute() {
         presentation.previousSlide();
     }
-}
+} 

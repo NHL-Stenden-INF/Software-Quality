@@ -1,51 +1,31 @@
 package com.jabberpoint.patterns.command;
 
 import com.jabberpoint.infrastructure.XMLAccessor;
-import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.patterns.composite.PresentationInterface;
 import com.jabberpoint.ui.view.SlideViewerFrame;
 
-import javafx.scene.control.Alert;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-import java.io.File;
+import java.io.IOException;
 
 public class OpenPresentationCommand implements Command {
-    private final Stage stage;
-    private final Presentation presentation;
+    private final PresentationInterface presentation;
     private final SlideViewerFrame viewerFrame;
     private final XMLAccessor xmlAccessor;
+    private final String filename;
 
-    public OpenPresentationCommand(Stage stage, Presentation presentation, SlideViewerFrame viewerFrame) {
-        this.stage = stage;
+    public OpenPresentationCommand(PresentationInterface presentation, SlideViewerFrame viewerFrame, XMLAccessor xmlAccessor, String filename) {
         this.presentation = presentation;
         this.viewerFrame = viewerFrame;
-        this.xmlAccessor = new XMLAccessor();
+        this.xmlAccessor = xmlAccessor;
+        this.filename = filename;
     }
 
     @Override
     public void execute() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("XML Files", "*.xml"));
-        File file = fileChooser.showOpenDialog(stage);
-        if (file != null) {
-            Presentation loaded = xmlAccessor.loadPresentation(file.getAbsolutePath());
-            if (loaded != null) {
-                presentation.copyFrom(loaded);
-                viewerFrame.updateView();
-                stage.setTitle(presentation.getTitle());
-            } else {
-                showAlert("Load Error", "Failed to load presentation from file");
-            }
+        try {
+            xmlAccessor.loadPresentation(presentation, filename);
+            viewerFrame.update(presentation);
+        } catch (IOException e) {
+            System.err.println("Error loading presentation: " + e.getMessage());
         }
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 } 

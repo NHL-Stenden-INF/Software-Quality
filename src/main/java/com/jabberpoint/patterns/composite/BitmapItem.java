@@ -6,38 +6,43 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public class BitmapItem extends SlideItem {
-    private final Image image;
+    private String name;
+    private Image image;
 
-    public BitmapItem(String imagePath, Style style) {
-        super("", style);
-        if (imagePath.startsWith("file:")) {
-            this.image = new Image(imagePath);
-        } else {
-            this.image = new Image("file:" + imagePath);
+    public BitmapItem(int level, String name) {
+        super();
+        this.level = level;
+        this.name = name;
+        loadImage();
+    }
+    
+    public BitmapItem(String name, Style style) {
+        super(name, style);
+        this.name = name;
+        loadImage();
+    }
+
+    private void loadImage() {
+        try {
+            image = new Image(name);
+        } catch (Exception e) {
+            System.err.println("Error loading image: " + name);
         }
     }
 
     @Override
-    public void draw(GraphicsContext gc, double canvasWidth, double canvasHeight) {
-        // Define the maximum area for the image
-        double maxWidth = canvasWidth - 100;
-        double maxHeight = 200;
+    public String getText() {
+        return name;
+    }
+    
+    public String getName() {
+        return name;
+    }
 
-        double imageWidth = image.getWidth();
-        double imageHeight = image.getHeight();
-
-        // Calculate scale preserving aspect ratio
-        double scaleX = maxWidth / imageWidth;
-        double scaleY = maxHeight / imageHeight;
-        double scale = Math.min(scaleX, scaleY);
-
-        double drawWidth = imageWidth * scale;
-        double drawHeight = imageHeight * scale;
-
-        // Center the image within the designated area
-        double x = 50 + (maxWidth - drawWidth) / 2;
-        double y = 300 + (maxHeight - drawHeight) / 2;
-
-        gc.drawImage(image, x, y, drawWidth, drawHeight);
+    @Override
+    public void draw(GraphicsContext gc, double x, double y) {
+        if (image != null) {
+            gc.drawImage(image, x, y);
+        }
     }
 }

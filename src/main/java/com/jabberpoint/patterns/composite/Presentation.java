@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.jabberpoint.patterns.observer.SlideObserver;
 
-public class Presentation {
+public class Presentation implements PresentationInterface {
     private String title;
     private List<Slide> slides;
     private int currentSlideIndex;
@@ -17,15 +17,18 @@ public class Presentation {
         currentSlideIndex = 0;
     }
 
+    @Override
     public void addSlide(Slide slide) {
         slides.add(slide);
         notifyObservers();
     }
 
+    @Override
     public List<Slide> getSlides() {
         return slides;
     }   
 
+    @Override
     public void setCurrentSlideIndex(int index) {
         if (index >= 0 && index < slides.size()) {
             this.currentSlideIndex = index;
@@ -33,6 +36,7 @@ public class Presentation {
         }
     }
 
+    @Override
     public Slide getCurrentSlide() {
         if (slides.isEmpty()) {
             return null;
@@ -40,6 +44,7 @@ public class Presentation {
         return slides.get(currentSlideIndex);
     }
 
+    @Override
     public void nextSlide() {
         if (currentSlideIndex < slides.size() - 1) {
             currentSlideIndex++;
@@ -47,6 +52,7 @@ public class Presentation {
         }
     }
 
+    @Override
     public void previousSlide() {
         if (currentSlideIndex > 0) {
             currentSlideIndex--;
@@ -54,29 +60,34 @@ public class Presentation {
         }
     }
 
+    @Override
     public String getTitle() {
         return title;
     }
 
+    @Override
     public void setTitle(String title) {
         this.title = title;
         notifyObservers();
     }
 
+    @Override
     public void addObserver(SlideObserver observer) {
         observers.add(observer);
     }
 
+    @Override
     public void removeObserver(SlideObserver observer) {
         observers.remove(observer);
     }
 
     private void notifyObservers() {
         for (SlideObserver observer : observers) {
-            observer.update();
+            observer.update(this);
         }
     }
 
+    @Override
     public int getSlideCount() {
         return slides.size();
     }
@@ -89,7 +100,8 @@ public class Presentation {
         notifyObservers();
     }
 
-    public void copyFrom(Presentation other) {
+    @Override
+    public void copyFrom(PresentationInterface other) {
         this.slides.clear();
         this.slides.addAll(other.getSlides());
         this.currentSlideIndex = 0;

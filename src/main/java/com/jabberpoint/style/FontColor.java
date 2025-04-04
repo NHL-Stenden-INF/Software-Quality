@@ -4,20 +4,18 @@ import javafx.scene.paint.Color;
 
 public enum FontColor {
     BLACK(Color.BLACK),
-    RED(Color.RED),
     WHITE(Color.WHITE),
+    RED(Color.RED),
+    GREEN(Color.GREEN),
     BLUE(Color.BLUE),
-    PURPLE(Color.PURPLE),
-    ORANGE(Color.ORANGE);
+    YELLOW(Color.YELLOW),
+    CYAN(Color.CYAN),
+    MAGENTA(Color.MAGENTA);
 
     private final Color color;
 
     FontColor(Color color) {
         this.color = color;
-    }
-
-    public Color getJavaFXColor() {
-        return color;
     }
 
     public Color getColor() {

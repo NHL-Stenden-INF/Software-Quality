@@ -5,12 +5,19 @@ import com.jabberpoint.style.Style;
 import javafx.scene.canvas.GraphicsContext;
 
 public abstract class SlideItem {
+    protected int level;
     protected String text;
     protected Style style;
 
+    public SlideItem() {
+        this.level = 1;
+        this.text = "";
+    }
+    
     public SlideItem(String text, Style style) {
+        this.level = 1;
         this.text = text;
-        this.style = style; 
+        this.style = style;
     }
 
     public String getText() {
@@ -29,5 +36,9 @@ public abstract class SlideItem {
         return text != null && !text.trim().isEmpty() && style != null;
     }
 
-    public abstract void draw(GraphicsContext gc, double width, double height);
+    public int getLevel() {
+        return level;
+    }
+
+    public abstract void draw(GraphicsContext gc, double x, double y);
 }

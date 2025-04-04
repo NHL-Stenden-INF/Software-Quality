@@ -1,12 +1,11 @@
 package com.jabberpoint.patterns.command;
 
-import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.patterns.composite.PresentationInterface;
 
 public class NextSlideCommand implements Command {
+    private final PresentationInterface presentation;
 
-    private Presentation presentation;
-
-    public NextSlideCommand(Presentation presentation) {
+    public NextSlideCommand(PresentationInterface presentation) {
         this.presentation = presentation;
     }
 

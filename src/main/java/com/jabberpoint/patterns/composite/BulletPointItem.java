@@ -11,10 +11,14 @@ public class BulletPointItem extends SlideItem {
     }
 
     @Override
-    public void draw(GraphicsContext gc, double width, double height) {
-        gc.setFill(getStyle().getFontColor().getJavaFXColor());
-        gc.setFont(Font.font(getStyle().getFontName().toString(), 
-                           getStyle().getFontSize().getJavaFXFontSize()));
-        gc.fillText("• " + getText(), 70, 250);
+    public void draw(GraphicsContext gc, double x, double y) {
+        // Draw bullet point
+        gc.setFill(style.getFontColor().getColor());
+        gc.fillOval(x - 10, y - 5, 5, 5);
+
+        // Draw text
+        Font font = Font.font(style.getFontName().toString(), style.getFontSize());
+        gc.setFont(font);
+        gc.fillText(getText(), x, y);
     }
 }

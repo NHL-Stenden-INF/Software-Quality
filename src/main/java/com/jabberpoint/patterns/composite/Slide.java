@@ -7,10 +7,21 @@ import java.util.stream.Collectors;
 import com.jabberpoint.style.Style;
 
 public class Slide {
-    private final String title;
-    private final List<SlideItem> items = new ArrayList<>();
+    private String title;
+    private List<SlideItem> items;
+    private String background;
+
+    public Slide() {
+        this.title = "";
+        this.items = new ArrayList<>();
+    }
 
     public Slide(String title) {
+        this.title = title;
+        this.items = new ArrayList<>();
+    }
+
+    public void setTitle(String title) {
         this.title = title;
     }
 
@@ -18,18 +29,25 @@ public class Slide {
         return title;
     }
 
-    public Slide addItem(SlideItem item) {
+    public void setBackground(String background) {
+        this.background = background;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void addItem(SlideItem item) {
         items.add(item);
-        return this;
+    }
+
+    public List<SlideItem> getItems() {
+        return items;
     }
 
     public Slide addItems(List<SlideItem> newItems) {
         items.addAll(newItems);
         return this;
-    }
-
-    public List<SlideItem> getItems() {
-        return new ArrayList<>(items);
     }
 
     public <T extends SlideItem> List<T> getItemsByType(Class<T> type) {
@@ -40,12 +58,7 @@ public class Slide {
     }
 
     public String getBackgroundImagePath() {
-        return items.stream()
-            .filter(BackgroundItem.class::isInstance)
-            .map(BackgroundItem.class::cast)
-            .findFirst()
-            .map(BackgroundItem::getImagePath)
-            .orElse(null);
+        return background;
     }
 
     public List<String> getBulletPoints() {

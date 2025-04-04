@@ -1,32 +1,27 @@
 package com.jabberpoint.patterns.command;
 
 import com.jabberpoint.infrastructure.XMLAccessor;
-import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.patterns.composite.PresentationInterface;
 
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-import java.io.File;
+import java.io.IOException;
 
 public class SavePresentationCommand implements Command {
-    private final Stage stage;
-    private final Presentation presentation;
+    private final PresentationInterface presentation;
     private final XMLAccessor xmlAccessor;
+    private final String filename;
 
-    public SavePresentationCommand(Stage stage, Presentation presentation) {
-        this.stage = stage;
+    public SavePresentationCommand(PresentationInterface presentation, XMLAccessor xmlAccessor, String filename) {
         this.presentation = presentation;
-        this.xmlAccessor = new XMLAccessor();
+        this.xmlAccessor = xmlAccessor;
+        this.filename = filename;
     }
 
     @Override
     public void execute() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("XML Files", "*.xml"));
-        File file = fileChooser.showSaveDialog(stage);
-        if (file != null) {
-            xmlAccessor.savePresentation(presentation, file.getAbsolutePath());
+        try {
+            xmlAccessor.savePresentation(presentation, filename);
+        } catch (IOException e) {
+            System.err.println("Error saving presentation: " + e.getMessage());
         }
     }
 } 

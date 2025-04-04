@@ -14,9 +14,9 @@ public class TitleItem extends SlideItem {
 
     @Override
     public void draw(GraphicsContext gc, double width, double height) {
-        Font font = Font.font(style.getFontName().toString(), style.getFontSize().getJavaFXFontSize());
+        Font font = Font.font(style.getFontName().toString(), style.getFontSize());
         gc.setFont(font);
-        gc.setFill(style.getFontColor().getJavaFXColor());
-        gc.fillText(getText(), width / 2, height / 2);
+        gc.setFill(style.getFontColor().getColor());
+        gc.fillText(getText(), width / 2, height / 4);
     }
 }

@@ -3,24 +3,22 @@ package com.jabberpoint.patterns.command;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.patterns.composite.PresentationInterface;
 import com.jabberpoint.patterns.composite.SlideItem;
 
 public class GoToSlideCommand implements Command {
 
-    private Presentation presentation;
+    private PresentationInterface presentation;
     private int slideNumber;
 
-    public GoToSlideCommand(Presentation presentation, int slideNumber) {
+    public GoToSlideCommand(PresentationInterface presentation, int slideNumber) {
         this.presentation = presentation;
         this.slideNumber = slideNumber;
     }
 
     @Override
     public void execute() {
-        if (slideNumber >= 0 && slideNumber < presentation.getSlides().size()) {
-            presentation.setCurrentSlideIndex(slideNumber);
-        }
+        presentation.setCurrentSlideIndex(slideNumber);
     }
 
     public List<SlideItem> getItems() {

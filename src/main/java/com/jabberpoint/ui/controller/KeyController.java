@@ -1,30 +1,35 @@
 package com.jabberpoint.ui.controller;
 
+import com.jabberpoint.patterns.command.Command;
+import com.jabberpoint.patterns.command.GoToSlideCommand;
 import com.jabberpoint.patterns.command.NextSlideCommand;
-import com.jabberpoint.patterns.command.PrevSlideCommand;
-import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.patterns.command.PreviousSlideCommand;
+import com.jabberpoint.patterns.composite.PresentationInterface;
 import com.jabberpoint.ui.view.SlideViewerFrame;
 
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 public class KeyController {
-    public KeyController(Presentation presentation, SlideViewerFrame viewerFrame) {
-        viewerFrame.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-            switch (event.getCode()) {
-                case RIGHT:
-                case DOWN:
-                    new NextSlideCommand(presentation).execute();
-                    viewerFrame.updateView();
-                    break;
-                case LEFT:
-                case UP:
-                    new PrevSlideCommand(presentation).execute();
-                    viewerFrame.updateView();
-                    break;
-                default:
-                    // Ignore all other key codes
-                    break;
-            }
-        });
+    private final PresentationInterface presentation;
+    private final Command nextSlideCommand;
+    private final Command previousSlideCommand;
+
+    public KeyController(PresentationInterface presentation, SlideViewerFrame viewerFrame) {
+        this.presentation = presentation;
+        this.nextSlideCommand = new NextSlideCommand(presentation);
+        this.previousSlideCommand = new PreviousSlideCommand(presentation);
+        viewerFrame.setOnKeyPressed(this::handleKeyPressed);
+    }
+
+    public void handleKeyPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.PAGE_DOWN || event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.SPACE || event.getCode() == KeyCode.N) {
+            nextSlideCommand.execute();
+        } else if (event.getCode() == KeyCode.PAGE_UP || event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.UP || event.getCode() == KeyCode.P) {
+            previousSlideCommand.execute();
+        } else if (event.getCode().isDigitKey()) {
+            int slideNumber = event.getCode().getCode() - KeyCode.DIGIT0.getCode();
+            new GoToSlideCommand(presentation, slideNumber).execute();
+        }
     }
 }

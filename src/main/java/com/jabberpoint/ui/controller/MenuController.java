@@ -1,132 +1,134 @@
 package com.jabberpoint.ui.controller;
 
-import com.jabberpoint.patterns.command.*;
-import com.jabberpoint.patterns.composite.Presentation;
+import com.jabberpoint.infrastructure.XMLAccessor;
+import com.jabberpoint.patterns.command.Command;
+import com.jabberpoint.patterns.command.GoToSlideCommand;
+import com.jabberpoint.patterns.command.NextSlideCommand;
+import com.jabberpoint.patterns.command.OpenPresentationCommand;
+import com.jabberpoint.patterns.command.PrevSlideCommand;
+import com.jabberpoint.patterns.command.SavePresentationCommand;
+import com.jabberpoint.patterns.command.ShowAboutCommand;
+import com.jabberpoint.patterns.composite.PresentationInterface;
 import com.jabberpoint.ui.view.SlideViewerFrame;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputDialog;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import java.util.Optional;
+import java.io.File;
 
 public class MenuController {
-
     private final Stage stage;
-    private final Presentation presentation;
+    private final PresentationInterface presentation;
     private final SlideViewerFrame viewerFrame;
+    private final XMLAccessor xmlAccessor;
+    private final MenuBar menuBar;
 
-    public MenuController(Stage stage, Presentation presentation, SlideViewerFrame viewerFrame) {
+    public MenuController(Stage stage, PresentationInterface presentation, SlideViewerFrame viewerFrame, XMLAccessor xmlAccessor) {
         this.stage = stage;
         this.presentation = presentation;
         this.viewerFrame = viewerFrame;
+        this.xmlAccessor = xmlAccessor;
+        this.menuBar = createMenuBar();
     }
 
-    public MenuBar createMenuBar() {
+    public MenuBar getMenuBar() {
+        return menuBar;
+    }
+
+    private MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
         
-        // File Menu
+        // File menu
         Menu fileMenu = new Menu("File");
-        fileMenu.getItems().addAll(
-            createOpenMenuItem(),
-            createSaveMenuItem(),
-            new SeparatorMenuItem(),
-            createExitMenuItem()
-        );
+        MenuItem openItem = new MenuItem("Open");
+        openItem.setOnAction(e -> handleOpen());
+        MenuItem saveItem = new MenuItem("Save");
+        saveItem.setOnAction(e -> handleSave());
+        MenuItem exitItem = new MenuItem("Exit");
+        exitItem.setOnAction(e -> handleExit());
+        fileMenu.getItems().addAll(openItem, saveItem, exitItem);
 
-        // View Menu
+        // View menu
         Menu viewMenu = new Menu("View");
-        viewMenu.getItems().addAll(
-            createNextSlideMenuItem(),
-            createPrevSlideMenuItem(),
-            new SeparatorMenuItem(),
-            createGotoSlideMenuItem()
-        );
+        MenuItem nextItem = new MenuItem("Next");
+        nextItem.setOnAction(e -> executeCommand(new NextSlideCommand(presentation)));
+        MenuItem prevItem = new MenuItem("Previous");
+        prevItem.setOnAction(e -> executeCommand(new PrevSlideCommand(presentation)));
+        MenuItem goToItem = new MenuItem("Go to...");
+        goToItem.setOnAction(e -> handleGoTo());
+        viewMenu.getItems().addAll(nextItem, prevItem, goToItem);
 
-        // Help Menu
+        // Help menu
         Menu helpMenu = new Menu("Help");
-        helpMenu.getItems().add(createAboutMenuItem());
+        MenuItem aboutItem = new MenuItem("About");
+        aboutItem.setOnAction(e -> executeCommand(new ShowAboutCommand()));
+        helpMenu.getItems().add(aboutItem);
 
         menuBar.getMenus().addAll(fileMenu, viewMenu, helpMenu);
         return menuBar;
     }
 
-    private MenuItem createOpenMenuItem() {
-        MenuItem item = new MenuItem("Open");
-        item.setOnAction(e -> new OpenPresentationCommand(stage, presentation, viewerFrame).execute());
-        return item;
+    private void handleOpen() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Presentation");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("XML Files", "*.xml")
+        );
+        
+        File file = fileChooser.showOpenDialog(stage);
+        if (file != null) {
+            Command command = new OpenPresentationCommand(presentation, viewerFrame, xmlAccessor, file.getAbsolutePath());
+            executeCommand(command);
+        }
     }
 
-    private MenuItem createSaveMenuItem() {
-        MenuItem item = new MenuItem("Save");
-        item.setOnAction(e -> new SavePresentationCommand(stage, presentation).execute());
-        return item;
+    private void handleSave() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Presentation");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("XML Files", "*.xml")
+        );
+        
+        File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            Command command = new SavePresentationCommand(presentation, xmlAccessor, file.getAbsolutePath());
+            executeCommand(command);
+        }
     }
 
-    private MenuItem createExitMenuItem() {
-        MenuItem item = new MenuItem("Exit");
-        item.setOnAction(e -> new ExitCommand().execute());
-        return item;
+    private void handleExit() {
+        stage.close();
     }
 
-    private MenuItem createNextSlideMenuItem() {
-        MenuItem item = new MenuItem("Next Slide");
-        item.setOnAction(e -> {
-            new NextSlideCommand(presentation).execute();
-            viewerFrame.updateView();
+    private void handleGoTo() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Go to Slide");
+        dialog.setHeaderText("Enter slide number");
+        dialog.setContentText("Slide number:");
+
+        dialog.showAndWait().ifPresent(result -> {
+            try {
+                int slideNumber = Integer.parseInt(result);
+                executeCommand(new GoToSlideCommand(presentation, slideNumber - 1));
+            } catch (NumberFormatException e) {
+                showError("Invalid Input", "Please enter a valid slide number.");
+            }
         });
-        return item;
     }
 
-    private MenuItem createPrevSlideMenuItem() {
-        MenuItem item = new MenuItem("Previous Slide");
-        item.setOnAction(e -> {
-            new PrevSlideCommand(presentation).execute();
-            viewerFrame.updateView();
-        });
-        return item;
+    private void executeCommand(Command command) {
+        command.execute();
     }
 
-    private MenuItem createGotoSlideMenuItem() {
-        MenuItem item = new MenuItem("Go To Slide");
-        item.setOnAction(e -> {
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.setTitle("Navigate to Slide");
-            dialog.setHeaderText("Enter slide number (1-" + presentation.getSlideCount() + "):");
-            
-            Optional<String> result = dialog.showAndWait();
-            result.ifPresent(input -> {
-                try {
-                    int slideNumber = Integer.parseInt(input) - 1;
-                    if (slideNumber >= 0 && slideNumber < presentation.getSlideCount()) {
-                        new GoToSlideCommand(presentation, slideNumber).execute();
-                        viewerFrame.updateView();
-                    } else {
-                        showAlert("Invalid Slide", "Slide number out of range");
-                    }
-                } catch (NumberFormatException ex) {
-                    showAlert("Invalid Input", "Please enter a valid number");
-                }
-            });
-        });
-        return item;
-    }
-
-    private MenuItem createAboutMenuItem() {
-        MenuItem item = new MenuItem("About");
-        item.setOnAction(e -> new ShowAboutCommand().execute());
-        return item;
-    }
-
-    private void showAlert(String title, String message) {
+    private void showError(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }
