@@ -18,6 +18,11 @@ public class BackgroundItem extends SlideItem {
     }
 
     @Override
+    public boolean isValid() {
+        return imagePath != null && !imagePath.trim().isEmpty() && style != null;
+    }
+
+    @Override
     public void draw(GraphicsContextWrapper gc, double width, double height) {
         Image image = new Image(imagePath);
         gc.drawImage(image, 0, 0, width, height);
