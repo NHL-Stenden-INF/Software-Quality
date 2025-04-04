@@ -1,24 +1,22 @@
 package com.jabberpoint;
 
 import javafx.application.Platform;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import javafx.embed.swing.JFXPanel;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class BaseTest {
-    private static final AtomicBoolean initialized = new AtomicBoolean(false);
+/**
+ * Base test class for all test classes.
+ * This class provides common functionality for all test classes.
+ */
+public class BaseTest implements BeforeAllCallback {
+    private static boolean initialized = false;
 
-    static {
-        if (!initialized.get()) {
-            try {
-                // Initialize JavaFX
-                CountDownLatch latch = new CountDownLatch(1);
-                Platform.startup(() -> latch.countDown());
-                latch.await();
-                Platform.setImplicitExit(false);
-                initialized.set(true);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to initialize JavaFX", e);
-            }
+    @Override
+    public void beforeAll(ExtensionContext context) {
+        if (!initialized) {
+            new JFXPanel(); // Initialize JavaFX
+            initialized = true;
         }
     }
 } 
