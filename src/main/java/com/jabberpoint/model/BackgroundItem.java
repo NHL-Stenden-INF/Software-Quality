@@ -9,7 +9,7 @@ public class BackgroundItem extends SlideItem {
 
     // Constructor expecting both imagePath and style
     public BackgroundItem(String imagePath, Style style) {
-        super("", style);  // Pass empty text and style
+        super("", style);
         this.imagePath = imagePath;
     }
 
@@ -19,7 +19,7 @@ public class BackgroundItem extends SlideItem {
 
     @Override
     public void draw(GraphicsContext gc, double width, double height) {
-        Image image = new Image(imagePath); // Load the image
+        Image image = new Image(imagePath);
         gc.drawImage(image, 0, 0, width, height);
     }
 }

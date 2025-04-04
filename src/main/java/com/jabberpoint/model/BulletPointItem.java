@@ -22,6 +22,6 @@ public class BulletPointItem extends SlideItem {
     public void draw(GraphicsContext gc, double width, double height) {
         gc.setFill(Color.BLACK);
         gc.setFont(Font.font("Arial", 24));
-        gc.fillText("• " + getText(), 70, 250); // Indent bullet points
+        gc.fillText("• " + getText(), 70, 250);
     }
 }

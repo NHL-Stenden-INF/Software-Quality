@@ -19,19 +19,17 @@ public class ConcreteSlideItemFactory {
         Style defaultStyle = new Style(FontName.ARIAL, FontSize.MEDIUM, FontColor.BLACK);
 
         switch (type) {
-            case TEXT: // For BodyTextItem, pass both content and style
+            case TEXT:
                 return new BodyTextItem(content, defaultStyle);
-            case TITLE: // For TitleItem, pass both content and style
+            case TITLE:
                 return new TitleItem(content, defaultStyle);
-            case SUBTITLE: // For SubtitleItem, pass both content and style
+            case SUBTITLE:
                 return new SubtitleItem(content, defaultStyle);
-            case BULLET: // For BulletPointItem, pass both content and style
+            case BULLET:
                 return new BulletPointItem(content, defaultStyle);
             case BITMAP:
-                // BitmapItem implementation is missing
                 throw new UnsupportedOperationException("Bitmap not implemented in this factory");
             case BACKGROUND:
-                // BackgroundItem implementation is missing
                 throw new UnsupportedOperationException("Background not implemented here");
             default:
                 throw new IllegalArgumentException("Unknown item type: " + type);

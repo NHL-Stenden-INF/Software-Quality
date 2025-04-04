@@ -8,14 +8,14 @@ public class TitleItem extends SlideItem {
 
     // Constructor that requires both text and style
     public TitleItem(String text, Style style) {
-        super(text, style);  // Call the constructor in SlideItem
+        super(text, style);
     }
 
     @Override
     public void draw(GraphicsContext gc, double width, double height) {
         Font font = Font.font(style.getFontName().toString(), style.getFontSize().getJavaFXFontSize());
-        gc.setFont(font);  // Set the font
-        gc.setFill(style.getFontColor().getJavaFXColor());  // Set the color
-        gc.fillText(getText(), width / 2, height / 2); // Draw text at the center of the specified area
+        gc.setFont(font);
+        gc.setFill(style.getFontColor().getJavaFXColor());
+        gc.fillText(getText(), width / 2, height / 2);
     }
 }

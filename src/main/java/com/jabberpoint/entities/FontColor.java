@@ -14,7 +14,7 @@ public enum FontColor {
     }
 
     public Color getJavaFXColor() {
-        return color; // Returns the JavaFX Color
+        return color;
     }
 
     public Color getColor() {

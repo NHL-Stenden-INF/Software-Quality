@@ -14,7 +14,7 @@ public enum FontName {
     }
 
     public Font getJavaFXFont() {
-        return Font.font(name); // This will return the corresponding Font for JavaFX
+        return Font.font(name);
     }
 
     public String getName() {

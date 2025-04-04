@@ -12,7 +12,7 @@ public enum FontSize {
     }
 
     public double getJavaFXFontSize() {
-        return size; // Returns the font size for JavaFX
+        return size;
     }
 
     public double getSize() {

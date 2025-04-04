@@ -54,9 +54,8 @@ public class XMLAccessor implements Accessor {
         // Process background
         String background = slideElem.getAttribute("background");
         if (!background.isEmpty()) {
-            // Get the style for the background, using a default style if needed
-            Style style = loadStyleFromElement(slideElem); // Assuming this is the style for the whole slide
-            slide.addItem(new BackgroundItem(background, style)); // Pass both the image path and style
+            Style style = loadStyleFromElement(slideElem);
+            slide.addItem(new BackgroundItem(background, style));
         }
     
         // Process content items
@@ -77,7 +76,7 @@ public class XMLAccessor implements Accessor {
         String content = elem.getTextContent().trim();
     
         // Retrieve the style for each item
-        Style style = loadStyleFromElement(elem); // This loads the style from XML for this element
+        Style style = loadStyleFromElement(elem);
     
         switch (tagName) {
             case "title":
@@ -159,7 +158,7 @@ public class XMLAccessor implements Accessor {
     
             if (item instanceof BulletPointItem) {
                 writeBulletPoints(writer, slide);
-                break; // Processed all bullets at once
+                break;
             }
             writeStandardItem(writer, item);
         }

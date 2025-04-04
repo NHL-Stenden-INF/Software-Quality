@@ -11,14 +11,14 @@ public class KeyController {
         viewerFrame.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()) {
                 case RIGHT:
-                case DOWN:  // Fixed key binding logic
+                case DOWN:
                     new NextSlideCommand(presentation).execute();
-                    viewerFrame.updateView();  // Changed to updateView()
+                    viewerFrame.updateView();
                     break;
                 case LEFT:
-                case UP:    // Fixed key binding logic
+                case UP:
                     new PrevSlideCommand(presentation).execute();
-                    viewerFrame.updateView();  // Changed to updateView()
+                    viewerFrame.updateView();
                     break;
             }
         });
