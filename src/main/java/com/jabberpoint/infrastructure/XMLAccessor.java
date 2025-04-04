@@ -6,6 +6,8 @@ import com.jabberpoint.entities.FontName;
 import com.jabberpoint.entities.FontSize;
 import com.jabberpoint.entities.FontColor;
 import com.jabberpoint.presentation.StyleManager;
+import com.jabberpoint.factory.ConcreteSlideItemFactory;
+import com.jabberpoint.entities.ItemType;
 
 import org.w3c.dom.*;
 
@@ -50,14 +52,14 @@ public class XMLAccessor implements Accessor {
 
     private Slide processSlideElement(Element slideElem) {
         Slide slide = new Slide(slideElem.getAttribute("title"));
-    
+
         // Process background
         String background = slideElem.getAttribute("background");
         if (!background.isEmpty()) {
             Style style = loadStyleFromElement(slideElem);
             slide.addItem(new BackgroundItem(background, style));
         }
-    
+
         // Process content items
         NodeList content = slideElem.getChildNodes();
         for (int i = 0; i < content.getLength(); i++) {
@@ -69,51 +71,67 @@ public class XMLAccessor implements Accessor {
         }
         return slide;
     }
-    
 
     private void processElement(Element elem, Slide slide) {
         String tagName = elem.getTagName();
         String content = elem.getTextContent().trim();
-    
-        // Retrieve the style for each item
         Style style = loadStyleFromElement(elem);
-    
+
         switch (tagName) {
             case "title":
-                slide.addItem(new TitleItem(content, style));
+                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.TITLE, content, style));
                 break;
             case "subtitle":
-                slide.addItem(new SubtitleItem(content, style));
+                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.SUBTITLE, content, style));
                 break;
             case "bodyText":
-                slide.addItem(new BodyTextItem(content, style));
+                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.TEXT, content, style));
                 break;
             case "bulletPoints":
-                processBulletPoints(elem, slide, style);
+                processBulletPoints(elem, slide);
                 break;
         }
     }
 
-    private void processBulletPoints(Element bulletPointsElem, Slide slide, Style style) {
+    private void processBulletPoints(Element bulletPointsElem, Slide slide) {
         NodeList bullets = bulletPointsElem.getElementsByTagName("bullet");
         for (int i = 0; i < bullets.getLength(); i++) {
             Element bulletElem = (Element) bullets.item(i);
-            slide.addItem(new BulletPointItem(bulletElem.getTextContent().trim(), style));
+            String text = bulletElem.getTextContent().trim();
+            Style style = loadStyleFromElement(bulletElem);
+            slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.BULLET, text, style));
         }
     }
 
     private Style loadStyleFromElement(Element elem) {
+        // Parse the specific style attributes for each element
         String fontName = elem.getAttribute("fontName");
         String fontSize = elem.getAttribute("fontSize");
         String fontColor = elem.getAttribute("fontColor");
-    
-        // Use default values if any attribute is missing or empty
-        FontName fontNameEnum = (fontName.isEmpty() ? FontName.ARIAL : FontName.valueOf(fontName.toUpperCase()));
-        FontSize fontSizeEnum = (fontSize.isEmpty() ? FontSize.MEDIUM : FontSize.valueOf(fontSize.toUpperCase()));
-        FontColor fontColorEnum = (fontColor.isEmpty() ? FontColor.BLACK : FontColor.valueOf(fontColor.toUpperCase()));
-    
+
+        // Log the fontColor before parsing for debugging
+        System.out.println("Parsing fontColor: " + fontColor);
+
+        // Fallback-safe parsing using safe conversion for FontColor
+        FontName fontNameEnum = parseEnum(FontName.class, fontName, FontName.ARIAL);
+        FontSize fontSizeEnum = parseEnum(FontSize.class, fontSize, FontSize.MEDIUM);
+        FontColor fontColorEnum = (fontColor == null || fontColor.isEmpty())
+                ? FontColor.BLACK
+                : FontColor.fromString(fontColor);
+
         return new Style(fontNameEnum, fontSizeEnum, fontColorEnum);
-    }  
+    }
+
+    private <T extends Enum<T>> T parseEnum(Class<T> enumType, String value, T defaultValue) {
+        if (value == null || value.isEmpty()) return defaultValue;
+        try {
+            return Enum.valueOf(enumType, value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.err.printf("Warning: '%s' is not a valid value for %s. Using default: %s%n",
+                    value, enumType.getSimpleName(), defaultValue);
+            return defaultValue;
+        }
+    }
 
     @Override
     public void savePresentation(Presentation presentation, String destination) {
@@ -139,23 +157,23 @@ public class XMLAccessor implements Accessor {
 
     private void writeSlide(FileWriter writer, Slide slide) throws Exception {
         writer.write(String.format("  <slide title=\"%s\"", escapeXML(slide.getTitle())));
-    
+
         // Write background if present
         slide.getItems().stream()
-            .filter(item -> item instanceof BackgroundItem)
-            .findFirst()
-            .ifPresent(bg -> {
-                try {
-                    writer.write(String.format(" background=\"%s\"", escapeXML(((BackgroundItem) bg).getImagePath()))); 
-                } catch (Exception e) { /* handle error */ }
-            });
-    
+                .filter(item -> item instanceof BackgroundItem)
+                .findFirst()
+                .ifPresent(bg -> {
+                    try {
+                        writer.write(String.format(" background=\"%s\"", escapeXML(((BackgroundItem) bg).getImagePath())));
+                    } catch (Exception e) { /* handle error */ }
+                });
+
         writer.write(">\n");
-    
+
         // Write content items
         for (SlideItem item : slide.getItems()) {
             if (item instanceof BackgroundItem) continue;
-    
+
             if (item instanceof BulletPointItem) {
                 writeBulletPoints(writer, slide);
                 break;
@@ -168,12 +186,12 @@ public class XMLAccessor implements Accessor {
     private void writeBulletPoints(FileWriter writer, Slide slide) throws Exception {
         writer.write("    <bulletPoints>\n");
         slide.getItems().stream()
-            .filter(item -> item instanceof BulletPointItem)
-            .forEach(item -> {
-                try {
-                    writer.write(String.format("      <bullet>%s</bullet>\n", escapeXML(item.getText())));
-                } catch (Exception e) { /* handle error */ }
-            });
+                .filter(item -> item instanceof BulletPointItem)
+                .forEach(item -> {
+                    try {
+                        writer.write(String.format("      <bullet>%s</bullet>\n", escapeXML(item.getText())));
+                    } catch (Exception e) { /* handle error */ }
+                });
         writer.write("    </bulletPoints>\n");
     }
 
@@ -190,7 +208,7 @@ public class XMLAccessor implements Accessor {
             }
             writer.write(String.format(">%s</%s>\n", escapeXML(item.getText()), tag));
         }
-    }    
+    }
 
     private String getItemTagName(SlideItem item) {
         if (item instanceof TitleItem) return "title";
@@ -201,22 +219,19 @@ public class XMLAccessor implements Accessor {
 
     private String escapeXML(String input) {
         return input.replace("&", "&amp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                    .replace("\"", "&quot;")
-                    .replace("'", "&apos;");
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
     }
 
-    private Style loadStyle(Element elem) {
-        String fontName = elem.getAttribute("fontName");
-        String fontSize = elem.getAttribute("fontSize");
-        String fontColor = elem.getAttribute("fontColor");
-    
-        // Default values if any attribute is missing or empty
-        FontName fontNameEnum = (fontName.isEmpty() ? FontName.ARIAL : FontName.valueOf(fontName.toUpperCase()));
-        FontSize fontSizeEnum = (fontSize.isEmpty() ? FontSize.MEDIUM : FontSize.valueOf(fontSize.toUpperCase()));
-        FontColor fontColorEnum = (fontColor.isEmpty() ? FontColor.BLACK : FontColor.valueOf(fontColor.toUpperCase()));
-    
-        return new Style(fontNameEnum, fontSizeEnum, fontColorEnum);
+    private void loadStyle(Element styleElem) {
+        String fontName = styleElem.getAttribute("fontName");
+        String fontSize = styleElem.getAttribute("fontSize");
+        String fontColor = styleElem.getAttribute("fontColor");
+
+        System.out.println("Parsing fontColor: " + fontColor);
+
+        StyleManager.loadStyleFromXML(fontName, fontSize, fontColor);
     }
 }

@@ -19,9 +19,9 @@ public class StyleManager {
     public static void loadStyleFromXML(String fontName, String fontSize, String fontColor) {
         try {
             currentStyle = new Style(
-                FontName.valueOf(fontName.toUpperCase()),  
-                FontSize.valueOf(fontSize.toUpperCase()),  
-                FontColor.valueOf(fontColor.toUpperCase()) 
+                    FontName.valueOf(fontName.toUpperCase()),
+                    FontSize.valueOf(fontSize.toUpperCase()),
+                    FontColor.fromString(fontColor)
             );
         } catch (IllegalArgumentException e) {
             System.err.println("Invalid style properties in XML: " + e.getMessage());

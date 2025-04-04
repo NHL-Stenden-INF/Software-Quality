@@ -23,7 +23,7 @@ public class SlideViewerComponent extends BorderPane {
     private final GraphicsContext gc;
     private Slide currentSlide;
 
-    public SlideViewerComponent() { 
+    public SlideViewerComponent() {
         canvas = new Canvas();
         gc = canvas.getGraphicsContext2D();
         this.setCenter(canvas);
@@ -33,7 +33,7 @@ public class SlideViewerComponent extends BorderPane {
         heightProperty().addListener((obs, oldVal, newVal) -> resizeCanvas());
     }
 
-    public void setSlide(Slide slide) {  
+    public void setSlide(Slide slide) {
         this.currentSlide = slide;
         drawSlide();
     }
@@ -41,13 +41,13 @@ public class SlideViewerComponent extends BorderPane {
     private void drawSlide() {
         if (currentSlide == null) return;
 
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); 
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         // Draw background first
         currentSlide.getItems().stream()
-            .filter(item -> item instanceof BackgroundItem)
-            .findFirst()
-            .ifPresent(bg -> drawBackground((BackgroundItem) bg));
+                .filter(item -> item instanceof BackgroundItem)
+                .findFirst()
+                .ifPresent(bg -> drawBackground((BackgroundItem) bg));
 
         drawTextContent();
     }
@@ -62,61 +62,54 @@ public class SlideViewerComponent extends BorderPane {
         Image bgImage = new Image(bg.getImagePath());
         double canvasWidth = canvas.getWidth();
         double canvasHeight = canvas.getHeight();
-        
+
         double imageWidth = bgImage.getWidth();
         double imageHeight = bgImage.getHeight();
-        
+
         double scaleX = canvasWidth / imageWidth;
         double scaleY = canvasHeight / imageHeight;
-        
+
         double scale = Math.max(scaleX, scaleY);
         double newWidth = imageWidth * scale;
         double newHeight = imageHeight * scale;
-        
+
         double xOffset = (canvasWidth - newWidth) / 2;
         double yOffset = (canvasHeight - newHeight) / 2;
-        
+
         gc.drawImage(bgImage, xOffset, yOffset, newWidth, newHeight);
     }
 
     private void drawTextContent() {
-        double yPosition = 100;  
-        
-        Style style = StyleManager.getCurrentStyle(); 
-        gc.setFill(style.getFontColor().getColor());
-    
-        // Loop through slide items and draw each one
+        double yPosition = 100; // starting y for non-title items
+
+        // Loop through slide items and draw each one using its own style
         for (SlideItem item : currentSlide.getItems()) {
+            // Use the item's own style; if null, fall back to the global style
+            Style itemStyle = (item.getStyle() != null) ? item.getStyle() : StyleManager.getCurrentStyle();
+            gc.setFill(itemStyle.getFontColor().getColor());
+
             if (item instanceof TitleItem) {
-                gc.setFont(Font.font(style.getFontName().getName(), FontWeight.BOLD, style.getFontSize().getSize() * 2));
-    
+                // Vertically center the title
+                gc.setFont(Font.font(itemStyle.getFontName().getName(), FontWeight.BOLD, itemStyle.getFontSize().getSize() * 2));
                 Text titleText = new Text(item.getText());
                 titleText.setFont(gc.getFont());
-                double textWidth = titleText.getLayoutBounds().getWidth(); 
-    
+                double textWidth = titleText.getLayoutBounds().getWidth();
                 double xPosition = (canvas.getWidth() - textWidth) / 2;
-    
-                double verticalCenter = (canvas.getHeight() - yPosition) / 2;
-                gc.fillText(item.getText(), xPosition, verticalCenter);
-    
-                yPosition += 60;
+                double yCenter = canvas.getHeight() / 2;
+                gc.fillText(item.getText(), xPosition, yCenter);
             } else if (item instanceof SubtitleItem) {
-                gc.setFont(Font.font(style.getFontName().getName(), FontWeight.BOLD, style.getFontSize().getSize() * 1.5));
-    
-                Text subtitleText = new Text(item.getText());
-                subtitleText.setFont(gc.getFont());
+                gc.setFont(Font.font(itemStyle.getFontName().getName(), FontWeight.BOLD, itemStyle.getFontSize().getSize() * 1.5));
                 gc.fillText(item.getText(), 50, yPosition);
                 yPosition += 40;
             } else if (item instanceof BodyTextItem) {
-                gc.setFont(new Font(style.getFontName().getName(), style.getFontSize().getSize()));
-                gc.fillText(item.getText(), 50, yPosition);  
+                gc.setFont(new Font(itemStyle.getFontName().getName(), itemStyle.getFontSize().getSize()));
+                gc.fillText(item.getText(), 50, yPosition);
                 yPosition += 30;
             } else if (item instanceof BulletPointItem) {
-
-                gc.setFont(new Font(style.getFontName().getName(), style.getFontSize().getSize()));
-                gc.fillText("• " + item.getText(), 70, yPosition); 
+                gc.setFont(new Font(itemStyle.getFontName().getName(), itemStyle.getFontSize().getSize()));
+                gc.fillText("• " + item.getText(), 70, yPosition);
                 yPosition += 25;
             }
         }
-    }    
+    }
 }

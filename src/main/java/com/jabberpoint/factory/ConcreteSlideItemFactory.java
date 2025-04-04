@@ -14,19 +14,16 @@ import com.jabberpoint.entities.FontColor;
 public class ConcreteSlideItemFactory {
 
     // Method to create SlideItem with content and style
-    public static SlideItem createSlideItem(ItemType type, String content) {
-        // You can change this default style or dynamically load it
-        Style defaultStyle = new Style(FontName.ARIAL, FontSize.MEDIUM, FontColor.BLACK);
-
+    public static SlideItem createSlideItem(ItemType type, String content, Style style) {
         switch (type) {
             case TEXT:
-                return new BodyTextItem(content, defaultStyle);
+                return new BodyTextItem(content, style);
             case TITLE:
-                return new TitleItem(content, defaultStyle);
+                return new TitleItem(content, style);
             case SUBTITLE:
-                return new SubtitleItem(content, defaultStyle);
+                return new SubtitleItem(content, style);
             case BULLET:
-                return new BulletPointItem(content, defaultStyle);
+                return new BulletPointItem(content, style);
             case BITMAP:
                 throw new UnsupportedOperationException("Bitmap not implemented in this factory");
             case BACKGROUND:
@@ -35,4 +32,5 @@ public class ConcreteSlideItemFactory {
                 throw new IllegalArgumentException("Unknown item type: " + type);
         }
     }
+
 }

@@ -2,39 +2,39 @@
 <presentation title="Default Presentation">
     <!-- Slide 1: Welcome -->
     <slide title="Slide 1: Welcome" background="file:resources/images/slide-bg.jpg">
-        <title style="fontName=ARIAL;fontSize=LARGE;fontColor=BLUE">Welcome to JabberPoint</title>
+        <title fontName="ARIAL" fontSize="LARGE" fontColor="BLUE">Welcome to JabberPoint</title>
     </slide>
 
     <!-- Slide 2: Instructions -->
     <slide title="Slide 2: Instructions" background="file:resources/images/slide-bg.jpg">
-        <subtitle style="fontName=ARIAL;fontSize=MEDIUM;fontColor=RED">How to Navigate</subtitle>
-        <bodyText style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Use the arrow keys or the menu to switch slides.</bodyText>
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="RED">How to Navigate</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Use the arrow keys or the menu to switch slides.</bodyText>
         <bulletPoints>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Left arrow: Previous slide</bullet>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Right arrow: Next slide</bullet>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Escape: Exit presentation</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Left arrow: Previous slide</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Right arrow: Next slide</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Escape: Exit presentation</bullet>
         </bulletPoints>
     </slide>
 
     <!-- Slide 3: Fun Facts -->
     <slide title="Slide 3: Fun Facts" background="file:resources/images/slide-bg.jpg">
-        <subtitle style="fontName=ARIAL;fontSize=MEDIUM;fontColor=PURPLE">Did You Know?</subtitle>
-        <bodyText style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">JabberPoint was inspired by classic presentation software but adds a modern twist!</bodyText>
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="PURPLE">Did You Know?</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">JabberPoint was inspired by classic presentation software but adds a modern twist!</bodyText>
         <bulletPoints>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Supports XML-based slides</bullet>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Custom backgrounds per slide</bullet>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Fully extendable with JavaFX</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Supports XML-based slides</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Custom backgrounds per slide</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Fully extendable with JavaFX</bullet>
         </bulletPoints>
     </slide>
 
     <!-- Slide 4: Thank You -->
     <slide title="Slide 4: Thank You" background="file:resources/images/slide-bg.jpg">
-        <subtitle style="fontName=ARIAL;fontSize=MEDIUM;fontColor=ORANGE">That's a Wrap!</subtitle>
-        <bodyText style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Thanks for checking out this presentation. Hope you had fun!</bodyText>
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="ORANGE">That's a Wrap!</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Thanks for checking out this presentation. Hope you had fun!</bodyText>
         <bulletPoints>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Feel free to explore the source code</bullet>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Customize your own slides</bullet>
-            <bullet style="fontName=ARIAL;fontSize=SMALL;fontColor=BLACK">Have an amazing day! 🎉</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Feel free to explore the source code</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Customize your own slides</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Have an amazing day! 🎉</bullet>
         </bulletPoints>
     </slide>
 </presentation>
