@@ -1,18 +1,23 @@
 package com.jabberpoint.entities;
 
+import javafx.scene.paint.Color;
+
 public enum FontColor {
-    BLACK("#000000"),
-    BLUE("#0000FF"),
-    RED("#FF0000"),
-    GREEN("#008000");
+    BLACK(Color.BLACK),
+    RED(Color.RED),
+    BLUE(Color.BLUE);
 
-    private String css;
+    private final Color color;
 
-    FontColor(String css) {
-        this.css = css;
+    FontColor(Color color) {
+        this.color = color;
     }
 
-    public String toCss() {
-        return css;
+    public Color getJavaFXColor() {
+        return color; // Returns the JavaFX Color
+    }
+
+    public Color getColor() {
+        return color;
     }
 }

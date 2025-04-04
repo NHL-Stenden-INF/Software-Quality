@@ -1,13 +1,20 @@
 package com.jabberpoint.model;
 
-public class BitmapItem implements SlideItem {
-    private String imagePath;
+import com.jabberpoint.entities.Style;
 
-    public BitmapItem(String imagePath) {
-        this.imagePath = imagePath;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+
+public class BitmapItem extends SlideItem {
+    private final Image image;
+
+    public BitmapItem(String imagePath, Style style) {
+        super("",style);
+        this.image = new Image("file:" + imagePath);
     }
 
-    public String getImagePath() {
-        return imagePath;
+    @Override
+    public void draw(GraphicsContext gc, double width, double height) {
+        gc.drawImage(image, 50, 300, width - 100, 200);
     }
 }

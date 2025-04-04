@@ -1,24 +1,26 @@
 package com.jabberpoint.view;
 
 import com.jabberpoint.model.Presentation;
-import com.jabberpoint.observer.SlideObserver;
+
+import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
 
-public class SlideViewerFrame extends BorderPane implements SlideObserver {
-
-    private Presentation presentation;
-    private SlideViewerComponent slideViewerComponent;
+public class SlideViewerFrame extends BorderPane {
+    private final SlideViewerComponent viewerComponent;
+    private final Presentation presentation;
 
     public SlideViewerFrame(Presentation presentation) {
         this.presentation = presentation;
-        // Register this viewer as an observer to the presentation
-        presentation.addObserver(this);
-        slideViewerComponent = new SlideViewerComponent(presentation);
-        setCenter(slideViewerComponent);
+        this.viewerComponent = new SlideViewerComponent();
+        setPadding(new Insets(0));
+        this.setCenter(viewerComponent);
+        updateView();
+        setFocusTraversable(true);
+        requestFocus();
     }
 
-    @Override
-    public void update() {
-        slideViewerComponent.updateView();
+    public void updateView() {
+        viewerComponent.setSlide(presentation.getCurrentSlide());
     }
+    
 }

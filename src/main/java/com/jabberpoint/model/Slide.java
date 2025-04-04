@@ -2,15 +2,18 @@ package com.jabberpoint.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Slide {
-    private String title;
-    private List<SlideItem> items;
-    private BackgroundItem background;
+    private final String title;
+    private final List<SlideItem> items = new ArrayList<>();
 
     public Slide(String title) {
         this.title = title;
-        this.items = new ArrayList<>();
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     public Slide addItem(SlideItem item) {
@@ -18,31 +21,27 @@ public class Slide {
         return this;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
     public List<SlideItem> getItems() {
-        return items;
+        return new ArrayList<>(items);
     }
 
-    public BackgroundItem getBackground() {
-        return background;
+    public String getBackgroundImagePath() {
+        return items.stream()
+            .filter(BackgroundItem.class::isInstance)
+            .map(BackgroundItem.class::cast)
+            .findFirst()
+            .map(BackgroundItem::getImagePath)
+            .orElse(null);
     }
 
-    public void setBackground(BackgroundItem background) {
-        this.background = background;
+    public List<String> getBulletPoints() {
+        return items.stream()
+                .filter(item -> item instanceof BulletPointItem)
+                .map(SlideItem::getText)
+                .collect(Collectors.toList());
     }
 
-    public String getBackgroundImage() {
-        return (background != null) ? background.getBackgroundPath() : null;
-    }
-
-    public void setBackgroundImage(String backgroundImage) {
-        if (background == null) {
-            this.background = new BackgroundItem(backgroundImage);
-        } else {
-            this.background.setBackgroundPath(backgroundImage);
-        }
+    public void clearItems() {
+        items.clear();
     }
 }

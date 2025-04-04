@@ -75,4 +75,24 @@ public class Presentation {
             observer.update();
         }
     }
+
+    public int getSlideCount() {
+        return slides.size();
+    }
+
+    public void replaceWith(Presentation other) {
+        this.slides.clear();
+        this.slides.addAll(other.getSlides());
+        this.title = other.getTitle();
+        this.currentSlideIndex = 0;
+        notifyObservers();
+    }
+
+    public void copyFrom(Presentation other) {
+        this.slides.clear();
+        this.slides.addAll(other.getSlides());
+        this.currentSlideIndex = 0;
+        this.title = other.getTitle();
+        notifyObservers();
+    }
 }

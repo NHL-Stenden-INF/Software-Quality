@@ -1,23 +1,21 @@
 package com.jabberpoint.entities;
 
 public enum FontSize {
-    SMALL(14, 10),
-    MEDIUM(18, 14),
-    LARGE(24, 18);
+    SMALL(12),
+    MEDIUM(16),
+    LARGE(24);
 
-    private int titleSize;
-    private int textSize;
+    private final double size;
 
-    FontSize(int titleSize, int textSize) {
-        this.titleSize = titleSize;
-        this.textSize = textSize;
+    FontSize(double size) {
+        this.size = size;
     }
 
-    public int getTitleSize() {
-        return titleSize;
+    public double getJavaFXFontSize() {
+        return size; // Returns the font size for JavaFX
     }
 
-    public int getTextSize() {
-        return textSize;
+    public double getSize() {
+        return size;
     }
 }

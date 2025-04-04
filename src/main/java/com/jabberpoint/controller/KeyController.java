@@ -7,26 +7,18 @@ import com.jabberpoint.view.SlideViewerFrame;
 import javafx.scene.input.KeyEvent;
 
 public class KeyController {
-
     public KeyController(Presentation presentation, SlideViewerFrame viewerFrame) {
-        // Ensure the viewerFrame is focusable and request focus
-        viewerFrame.setFocusTraversable(true);
-        viewerFrame.requestFocus();
-
-        // Attach a key pressed handler directly to the viewerFrame
         viewerFrame.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()) {
                 case RIGHT:
-                case UP:
+                case DOWN:  // Fixed key binding logic
                     new NextSlideCommand(presentation).execute();
-                    viewerFrame.update();
+                    viewerFrame.updateView();  // Changed to updateView()
                     break;
                 case LEFT:
-                case DOWN:
+                case UP:    // Fixed key binding logic
                     new PrevSlideCommand(presentation).execute();
-                    viewerFrame.update();
-                    break;
-                default:
+                    viewerFrame.updateView();  // Changed to updateView()
                     break;
             }
         });

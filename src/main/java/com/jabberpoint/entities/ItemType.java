@@ -1,6 +1,10 @@
 package com.jabberpoint.entities;
 
 public enum ItemType {
-    TEXT,
-    BITMAP
+    TITLE,
+    SUBTITLE,
+    TEXT,     
+    BULLET,
+    BITMAP,
+    BACKGROUND
 }

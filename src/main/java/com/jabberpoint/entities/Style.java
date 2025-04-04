@@ -1,9 +1,9 @@
 package com.jabberpoint.entities;
 
 public class Style {
-    private FontName fontName;
-    private FontSize fontSize;
-    private FontColor fontColor;
+    private final FontName fontName;
+    private final FontSize fontSize;
+    private final FontColor fontColor;
 
     public Style(FontName fontName, FontSize fontSize, FontColor fontColor) {
         this.fontName = fontName;

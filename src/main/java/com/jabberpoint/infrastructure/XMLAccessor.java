@@ -1,10 +1,14 @@
 package com.jabberpoint.infrastructure;
 
-import com.jabberpoint.model.Presentation;
-import com.jabberpoint.model.Slide;
-import com.jabberpoint.model.SlideItem;
-import com.jabberpoint.model.TextItem;
+import com.jabberpoint.model.*;
+import com.jabberpoint.entities.Style;
+import com.jabberpoint.entities.FontName;
+import com.jabberpoint.entities.FontSize;
+import com.jabberpoint.entities.FontColor;
+import com.jabberpoint.presentation.StyleManager;
+
 import org.w3c.dom.*;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
@@ -22,97 +26,198 @@ public class XMLAccessor implements Accessor {
             Document doc = dBuilder.parse(xmlFile);
             doc.getDocumentElement().normalize();
 
-            // Set presentation title from attribute "title"
             Element presElem = doc.getDocumentElement();
-            String presTitle = presElem.getAttribute("title");
-            presentation.setTitle(presTitle);
+            presentation.setTitle(presElem.getAttribute("title"));
 
-            // Get all slide nodes
-            NodeList slideNodes = doc.getElementsByTagName("slide");
-            for (int i = 0; i < slideNodes.getLength(); i++) {
-                Node slideNode = slideNodes.item(i);
-                if (slideNode.getNodeType() == Node.ELEMENT_NODE) {
-                    Element slideElem = (Element) slideNode;
-                    String slideTitle = slideElem.getAttribute("title");
-                    Slide slide = new Slide(slideTitle);
-
-                    // Read the background attribute
-                    String background = slideElem.getAttribute("background");
-                    if (background != null && !background.isEmpty()) {
-                        slide.setBackgroundImage(background);
-                    }
-                    
-                    // Read text items
-                    NodeList textNodes = slideElem.getElementsByTagName("text");
-                    for (int j = 0; j < textNodes.getLength(); j++) {
-                        Node textNode = textNodes.item(j);
-                        if (textNode.getNodeType() == Node.ELEMENT_NODE) {
-                            Element textElem = (Element) textNode;
-                            String content = textElem.getTextContent().trim();
-                            if (!content.isEmpty()) {
-                                slide.addItem(new TextItem(content));
-                            }
-                        }
-                    }
-                    presentation.addSlide(slide);
-                }
+            // Load style if present
+            Element styleElem = (Element) presElem.getElementsByTagName("style").item(0);
+            if (styleElem != null) {
+                loadStyle(styleElem);
             }
 
+            NodeList slideNodes = doc.getElementsByTagName("slide");
+            for (int i = 0; i < slideNodes.getLength(); i++) {
+                Element slideElem = (Element) slideNodes.item(i);
+                Slide slide = processSlideElement(slideElem);
+                presentation.addSlide(slide);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            return null; // In case of error, return null
+            return null;
         }
         return presentation;
     }
 
-    // Helper method to escape XML special characters
-    private String escapeXML(String input) {
-        if (input == null) return "";
-        return input.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&apos;");
+    private Slide processSlideElement(Element slideElem) {
+        Slide slide = new Slide(slideElem.getAttribute("title"));
+    
+        // Process background
+        String background = slideElem.getAttribute("background");
+        if (!background.isEmpty()) {
+            // Get the style for the background, using a default style if needed
+            Style style = loadStyleFromElement(slideElem); // Assuming this is the style for the whole slide
+            slide.addItem(new BackgroundItem(background, style)); // Pass both the image path and style
+        }
+    
+        // Process content items
+        NodeList content = slideElem.getChildNodes();
+        for (int i = 0; i < content.getLength(); i++) {
+            Node node = content.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element elem = (Element) node;
+                processElement(elem, slide);
+            }
+        }
+        return slide;
     }
+    
+
+    private void processElement(Element elem, Slide slide) {
+        String tagName = elem.getTagName();
+        String content = elem.getTextContent().trim();
+    
+        // Retrieve the style for each item
+        Style style = loadStyleFromElement(elem); // This loads the style from XML for this element
+    
+        switch (tagName) {
+            case "title":
+                slide.addItem(new TitleItem(content, style));
+                break;
+            case "subtitle":
+                slide.addItem(new SubtitleItem(content, style));
+                break;
+            case "bodyText":
+                slide.addItem(new BodyTextItem(content, style));
+                break;
+            case "bulletPoints":
+                processBulletPoints(elem, slide, style);
+                break;
+        }
+    }
+
+    private void processBulletPoints(Element bulletPointsElem, Slide slide, Style style) {
+        NodeList bullets = bulletPointsElem.getElementsByTagName("bullet");
+        for (int i = 0; i < bullets.getLength(); i++) {
+            Element bulletElem = (Element) bullets.item(i);
+            slide.addItem(new BulletPointItem(bulletElem.getTextContent().trim(), style));
+        }
+    }
+
+    private Style loadStyleFromElement(Element elem) {
+        String fontName = elem.getAttribute("fontName");
+        String fontSize = elem.getAttribute("fontSize");
+        String fontColor = elem.getAttribute("fontColor");
+    
+        // Use default values if any attribute is missing or empty
+        FontName fontNameEnum = (fontName.isEmpty() ? FontName.ARIAL : FontName.valueOf(fontName.toUpperCase()));
+        FontSize fontSizeEnum = (fontSize.isEmpty() ? FontSize.MEDIUM : FontSize.valueOf(fontSize.toUpperCase()));
+        FontColor fontColorEnum = (fontColor.isEmpty() ? FontColor.BLACK : FontColor.valueOf(fontColor.toUpperCase()));
+    
+        return new Style(fontNameEnum, fontSizeEnum, fontColorEnum);
+    }  
 
     @Override
     public void savePresentation(Presentation presentation, String destination) {
-        File file = new File(destination);
-
-        try (FileWriter writer = new FileWriter(file)) {
-            // Write XML declaration
+        try (FileWriter writer = new FileWriter(destination)) {
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-            writer.write("<presentation title=\"" + escapeXML(presentation.getTitle()) + "\">\n");
+            writer.write(String.format("<presentation title=\"%s\">\n", escapeXML(presentation.getTitle())));
 
-            // Save slides
+            // Save style
+            Style style = StyleManager.getCurrentStyle();
+            writer.write("  <style");
+            writer.write(String.format(" fontName=\"%s\"", style.getFontName().name()));
+            writer.write(String.format(" fontSize=\"%s\"", style.getFontSize().name()));
+            writer.write(String.format(" fontColor=\"%s\"/>\n", style.getFontColor().name()));
+
             for (Slide slide : presentation.getSlides()) {
-                writer.write("  <slide title=\"" + escapeXML(slide.getTitle()) + "\"");
-
-                // Add background attribute if it exists
-                if (slide.getBackgroundImage() != null && !slide.getBackgroundImage().isEmpty()) {
-                    writer.write(" background=\"" + escapeXML(slide.getBackgroundImage()) + "\"");
-                }
-
-                writer.write(">\n");
-
-                // Save slide items
-                for (SlideItem item : slide.getItems()) {
-                    // Only saves text items
-                    if (item instanceof TextItem) {
-                        TextItem textItem = (TextItem) item;
-                        writer.write("    <text>" + escapeXML(textItem.getText()) + "</text>\n");
-                    }
-                }
-
-                writer.write("  </slide>\n");
+                writeSlide(writer, slide);
             }
-
             writer.write("</presentation>");
-
-            System.out.println("File saved: " + file.getAbsolutePath());
         } catch (Exception e) {
             System.err.println("Error saving presentation: " + e.getMessage());
-            e.printStackTrace();
         }
+    }
+
+    private void writeSlide(FileWriter writer, Slide slide) throws Exception {
+        writer.write(String.format("  <slide title=\"%s\"", escapeXML(slide.getTitle())));
+    
+        // Write background if present
+        slide.getItems().stream()
+            .filter(item -> item instanceof BackgroundItem)
+            .findFirst()
+            .ifPresent(bg -> {
+                try {
+                    writer.write(String.format(" background=\"%s\"", escapeXML(((BackgroundItem) bg).getImagePath()))); 
+                } catch (Exception e) { /* handle error */ }
+            });
+    
+        writer.write(">\n");
+    
+        // Write content items
+        for (SlideItem item : slide.getItems()) {
+            if (item instanceof BackgroundItem) continue;
+    
+            if (item instanceof BulletPointItem) {
+                writeBulletPoints(writer, slide);
+                break; // Processed all bullets at once
+            }
+            writeStandardItem(writer, item);
+        }
+        writer.write("  </slide>\n");
+    }
+
+    private void writeBulletPoints(FileWriter writer, Slide slide) throws Exception {
+        writer.write("    <bulletPoints>\n");
+        slide.getItems().stream()
+            .filter(item -> item instanceof BulletPointItem)
+            .forEach(item -> {
+                try {
+                    writer.write(String.format("      <bullet>%s</bullet>\n", escapeXML(item.getText())));
+                } catch (Exception e) { /* handle error */ }
+            });
+        writer.write("    </bulletPoints>\n");
+    }
+
+    private void writeStandardItem(FileWriter writer, SlideItem item) throws Exception {
+        String tag = getItemTagName(item);
+        if (tag != null) {
+            // Retrieve the style of the item
+            Style style = item.getStyle();
+            writer.write(String.format("    <%s", tag));
+            if (style != null) {
+                writer.write(String.format(" fontName=\"%s\"", style.getFontName().name()));
+                writer.write(String.format(" fontSize=\"%s\"", style.getFontSize().name()));
+                writer.write(String.format(" fontColor=\"%s\"", style.getFontColor().name()));
+            }
+            writer.write(String.format(">%s</%s>\n", escapeXML(item.getText()), tag));
+        }
+    }    
+
+    private String getItemTagName(SlideItem item) {
+        if (item instanceof TitleItem) return "title";
+        if (item instanceof SubtitleItem) return "subtitle";
+        if (item instanceof BodyTextItem) return "bodyText";
+        return null;
+    }
+
+    private String escapeXML(String input) {
+        return input.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\"", "&quot;")
+                    .replace("'", "&apos;");
+    }
+
+    private Style loadStyle(Element elem) {
+        String fontName = elem.getAttribute("fontName");
+        String fontSize = elem.getAttribute("fontSize");
+        String fontColor = elem.getAttribute("fontColor");
+    
+        // Default values if any attribute is missing or empty
+        FontName fontNameEnum = (fontName.isEmpty() ? FontName.ARIAL : FontName.valueOf(fontName.toUpperCase()));
+        FontSize fontSizeEnum = (fontSize.isEmpty() ? FontSize.MEDIUM : FontSize.valueOf(fontSize.toUpperCase()));
+        FontColor fontColorEnum = (fontColor.isEmpty() ? FontColor.BLACK : FontColor.valueOf(fontColor.toUpperCase()));
+    
+        return new Style(fontNameEnum, fontSizeEnum, fontColorEnum);
     }
 }
