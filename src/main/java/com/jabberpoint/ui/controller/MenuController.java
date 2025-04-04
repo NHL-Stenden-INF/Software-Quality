@@ -1,11 +1,7 @@
 package com.jabberpoint.ui.controller;
 
-import com.jabberpoint.infrastructure.XMLAccessor;
-import com.jabberpoint.patterns.command.GoToSlideCommand;
-import com.jabberpoint.patterns.command.NextSlideCommand;
-import com.jabberpoint.patterns.command.PrevSlideCommand;
+import com.jabberpoint.patterns.command.*;
 import com.jabberpoint.patterns.composite.Presentation;
-import com.jabberpoint.ui.view.AboutBox;
 import com.jabberpoint.ui.view.SlideViewerFrame;
 
 import javafx.scene.control.Alert;
@@ -14,9 +10,8 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputDialog;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import java.io.File;
+
 import java.util.Optional;
 
 public class MenuController {
@@ -24,7 +19,6 @@ public class MenuController {
     private final Stage stage;
     private final Presentation presentation;
     private final SlideViewerFrame viewerFrame;
-    private final XMLAccessor xmlAccessor = new XMLAccessor();
 
     public MenuController(Stage stage, Presentation presentation, SlideViewerFrame viewerFrame) {
         this.stage = stage;
@@ -63,42 +57,19 @@ public class MenuController {
 
     private MenuItem createOpenMenuItem() {
         MenuItem item = new MenuItem("Open");
-        item.setOnAction(e -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("XML Files", "*.xml"));
-            File file = fileChooser.showOpenDialog(stage);
-            if (file != null) {
-                Presentation loaded = xmlAccessor.loadPresentation(file.getAbsolutePath());
-                if (loaded != null) {
-                    presentation.copyFrom(loaded);
-                    viewerFrame.updateView();
-                    stage.setTitle(presentation.getTitle());
-                } else {
-                    showAlert("Load Error", "Failed to load presentation from file");
-                }
-            }
-        });
+        item.setOnAction(e -> new OpenPresentationCommand(stage, presentation, viewerFrame).execute());
         return item;
     }
 
     private MenuItem createSaveMenuItem() {
         MenuItem item = new MenuItem("Save");
-        item.setOnAction(e -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("XML Files", "*.xml"));
-            File file = fileChooser.showSaveDialog(stage);
-            if (file != null) {
-                xmlAccessor.savePresentation(presentation, file.getAbsolutePath());
-            }
-        });
+        item.setOnAction(e -> new SavePresentationCommand(stage, presentation).execute());
         return item;
     }
 
     private MenuItem createExitMenuItem() {
         MenuItem item = new MenuItem("Exit");
-        item.setOnAction(e -> System.exit(0));
+        item.setOnAction(e -> new ExitCommand().execute());
         return item;
     }
 
@@ -147,7 +118,7 @@ public class MenuController {
 
     private MenuItem createAboutMenuItem() {
         MenuItem item = new MenuItem("About");
-        item.setOnAction(e -> AboutBox.display());
+        item.setOnAction(e -> new ShowAboutCommand().execute());
         return item;
     }
 
