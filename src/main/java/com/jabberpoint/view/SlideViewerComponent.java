@@ -7,6 +7,7 @@ import com.jabberpoint.model.TitleItem;
 import com.jabberpoint.model.SubtitleItem;
 import com.jabberpoint.model.BodyTextItem;
 import com.jabberpoint.model.BulletPointItem;
+import com.jabberpoint.model.BitmapItem;
 import com.jabberpoint.presentation.StyleManager;
 import com.jabberpoint.entities.Style;
 import javafx.scene.text.Text;
@@ -49,7 +50,43 @@ public class SlideViewerComponent extends BorderPane {
                 .findFirst()
                 .ifPresent(bg -> drawBackground((BackgroundItem) bg));
 
-        drawTextContent();
+        // Draw each slide item based on its type
+        double yPosition = 100; // starting y for text items
+
+        for (SlideItem item : currentSlide.getItems()) {
+            if (item instanceof BitmapItem) {
+                // Draw BitmapItem, passing full canvas dimensions if needed
+                item.draw(gc, canvas.getWidth(), canvas.getHeight());
+            } else if (item instanceof TitleItem) {
+                Style itemStyle = (item.getStyle() != null) ? item.getStyle() : StyleManager.getCurrentStyle();
+                gc.setFill(itemStyle.getFontColor().getColor());
+                gc.setFont(Font.font(itemStyle.getFontName().getName(), FontWeight.BOLD, itemStyle.getFontSize().getSize() * 2));
+                Text titleText = new Text(item.getText());
+                titleText.setFont(gc.getFont());
+                double textWidth = titleText.getLayoutBounds().getWidth();
+                double xPosition = (canvas.getWidth() - textWidth) / 2;
+                double yCenter = canvas.getHeight() / 2;
+                gc.fillText(item.getText(), xPosition, yCenter);
+            } else if (item instanceof SubtitleItem) {
+                Style itemStyle = (item.getStyle() != null) ? item.getStyle() : StyleManager.getCurrentStyle();
+                gc.setFill(itemStyle.getFontColor().getColor());
+                gc.setFont(Font.font(itemStyle.getFontName().getName(), FontWeight.BOLD, itemStyle.getFontSize().getSize() * 1.5));
+                gc.fillText(item.getText(), 50, yPosition);
+                yPosition += 40;
+            } else if (item instanceof BodyTextItem) {
+                Style itemStyle = (item.getStyle() != null) ? item.getStyle() : StyleManager.getCurrentStyle();
+                gc.setFill(itemStyle.getFontColor().getColor());
+                gc.setFont(new Font(itemStyle.getFontName().getName(), itemStyle.getFontSize().getSize()));
+                gc.fillText(item.getText(), 50, yPosition);
+                yPosition += 30;
+            } else if (item instanceof BulletPointItem) {
+                Style itemStyle = (item.getStyle() != null) ? item.getStyle() : StyleManager.getCurrentStyle();
+                gc.setFill(itemStyle.getFontColor().getColor());
+                gc.setFont(new Font(itemStyle.getFontName().getName(), itemStyle.getFontSize().getSize()));
+                gc.fillText("• " + item.getText(), 70, yPosition);
+                yPosition += 25;
+            }
+        }
     }
 
     private void resizeCanvas() {
@@ -77,39 +114,5 @@ public class SlideViewerComponent extends BorderPane {
         double yOffset = (canvasHeight - newHeight) / 2;
 
         gc.drawImage(bgImage, xOffset, yOffset, newWidth, newHeight);
-    }
-
-    private void drawTextContent() {
-        double yPosition = 100; // starting y for non-title items
-
-        // Loop through slide items and draw each one using its own style
-        for (SlideItem item : currentSlide.getItems()) {
-            // Use the item's own style; if null, fall back to the global style
-            Style itemStyle = (item.getStyle() != null) ? item.getStyle() : StyleManager.getCurrentStyle();
-            gc.setFill(itemStyle.getFontColor().getColor());
-
-            if (item instanceof TitleItem) {
-                // Vertically center the title
-                gc.setFont(Font.font(itemStyle.getFontName().getName(), FontWeight.BOLD, itemStyle.getFontSize().getSize() * 2));
-                Text titleText = new Text(item.getText());
-                titleText.setFont(gc.getFont());
-                double textWidth = titleText.getLayoutBounds().getWidth();
-                double xPosition = (canvas.getWidth() - textWidth) / 2;
-                double yCenter = canvas.getHeight() / 2;
-                gc.fillText(item.getText(), xPosition, yCenter);
-            } else if (item instanceof SubtitleItem) {
-                gc.setFont(Font.font(itemStyle.getFontName().getName(), FontWeight.BOLD, itemStyle.getFontSize().getSize() * 1.5));
-                gc.fillText(item.getText(), 50, yPosition);
-                yPosition += 40;
-            } else if (item instanceof BodyTextItem) {
-                gc.setFont(new Font(itemStyle.getFontName().getName(), itemStyle.getFontSize().getSize()));
-                gc.fillText(item.getText(), 50, yPosition);
-                yPosition += 30;
-            } else if (item instanceof BulletPointItem) {
-                gc.setFont(new Font(itemStyle.getFontName().getName(), itemStyle.getFontSize().getSize()));
-                gc.fillText("• " + item.getText(), 70, yPosition);
-                yPosition += 25;
-            }
-        }
     }
 }

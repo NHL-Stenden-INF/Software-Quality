@@ -90,6 +90,9 @@ public class XMLAccessor implements Accessor {
             case "bulletPoints":
                 processBulletPoints(elem, slide);
                 break;
+            case "bitmap": // Process bitmap items
+                slide.addItem(ConcreteSlideItemFactory.createSlideItem(ItemType.BITMAP, content, style));
+                break;
         }
     }
 
@@ -178,7 +181,11 @@ public class XMLAccessor implements Accessor {
                 writeBulletPoints(writer, slide);
                 break;
             }
-            writeStandardItem(writer, item);
+            if (item instanceof BitmapItem) {
+                writeBitmapItem(writer, (BitmapItem) item);
+            } else {
+                writeStandardItem(writer, item);
+            }
         }
         writer.write("  </slide>\n");
     }
@@ -193,6 +200,18 @@ public class XMLAccessor implements Accessor {
                     } catch (Exception e) { /* handle error */ }
                 });
         writer.write("    </bulletPoints>\n");
+    }
+
+    private void writeBitmapItem(FileWriter writer, BitmapItem item) throws Exception {
+        // Retrieve the style of the item if needed
+        Style style = item.getStyle();
+        writer.write("    <bitmap");
+        if (style != null) {
+            writer.write(String.format(" fontName=\"%s\"", style.getFontName().name()));
+            writer.write(String.format(" fontSize=\"%s\"", style.getFontSize().name()));
+            writer.write(String.format(" fontColor=\"%s\"", style.getFontColor().name()));
+        }
+        writer.write(String.format(">%s</bitmap>\n", escapeXML(item.getText())));
     }
 
     private void writeStandardItem(FileWriter writer, SlideItem item) throws Exception {
