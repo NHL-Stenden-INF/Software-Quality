@@ -1,8 +1,7 @@
 package com.jabberpoint.patterns.composite;
 
 import com.jabberpoint.style.Style;
-
-import javafx.scene.canvas.GraphicsContext;
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 import javafx.scene.image.Image;
 
 public class BackgroundItem extends SlideItem {
@@ -19,7 +18,7 @@ public class BackgroundItem extends SlideItem {
     }
 
     @Override
-    public void draw(GraphicsContext gc, double width, double height) {
+    public void draw(GraphicsContextWrapper gc, double width, double height) {
         Image image = new Image(imagePath);
         gc.drawImage(image, 0, 0, width, height);
     }

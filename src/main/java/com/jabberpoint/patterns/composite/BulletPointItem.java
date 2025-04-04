@@ -1,8 +1,7 @@
 package com.jabberpoint.patterns.composite;
 
 import com.jabberpoint.style.Style;
-
-import javafx.scene.canvas.GraphicsContext;
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 import javafx.scene.text.Font;
 
 public class BulletPointItem extends SlideItem {
@@ -11,7 +10,7 @@ public class BulletPointItem extends SlideItem {
     }
 
     @Override
-    public void draw(GraphicsContext gc, double x, double y) {
+    public void draw(GraphicsContextWrapper gc, double x, double y) {
         // Draw bullet point
         gc.setFill(style.getFontColor().getColor());
         gc.fillOval(x - 10, y - 5, 5, 5);

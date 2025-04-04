@@ -1,8 +1,7 @@
 package com.jabberpoint.patterns.composite;
 
 import com.jabberpoint.style.Style;
-
-import javafx.scene.canvas.GraphicsContext;
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 
 public abstract class SlideItem {
     protected int level;
@@ -40,5 +39,5 @@ public abstract class SlideItem {
         return level;
     }
 
-    public abstract void draw(GraphicsContext gc, double x, double y);
+    public abstract void draw(GraphicsContextWrapper gc, double x, double y);
 }

@@ -3,7 +3,7 @@ package com.jabberpoint.patterns.composite;
 import com.jabberpoint.style.Style;
 import com.jabberpoint.style.FontName;
 import com.jabberpoint.style.FontColor;
-import javafx.scene.canvas.GraphicsContext;
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import org.mockito.MockitoAnnotations;
 public class BackgroundItemTest {
     
     @Mock
-    private GraphicsContext graphicsContext;
+    private GraphicsContextWrapper graphicsContext;
     
     private BackgroundItem backgroundItem;
     private Style style;

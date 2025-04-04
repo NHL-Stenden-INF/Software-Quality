@@ -41,8 +41,7 @@
         </bodyText>
         <bulletPoints>
             <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Feel free to explore the source code</bullet>
-            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Customize your own slides</bullet>
-            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Have an amazing day! 🎉</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Customize your own slides with xml</bullet>
         </bulletPoints>
     </slide>
 </presentation>

@@ -42,6 +42,9 @@ public class FontColorTest {
         // Invalid color should default to BLACK
         assertEquals(FontColor.BLACK, FontColor.fromString("INVALID_COLOR"));
         assertEquals(FontColor.BLACK, FontColor.fromString(""));
-        assertEquals(FontColor.BLACK, FontColor.fromString(null));
+        
+        // Handle null value separately to avoid NullPointerException
+        String nullStr = null;
+        assertEquals(FontColor.BLACK, FontColor.fromString(nullStr));
     }
 } 

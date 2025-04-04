@@ -9,9 +9,9 @@ import com.jabberpoint.patterns.composite.BodyTextItem;
 import com.jabberpoint.patterns.composite.BulletPointItem;
 import com.jabberpoint.patterns.composite.BitmapItem;
 import com.jabberpoint.style.Style;
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.Font;
@@ -39,6 +39,7 @@ public class SlideViewerComponent extends StackPane {
     
     // The canvas that will be used for drawing
     private Canvas canvas;
+    private GraphicsContextWrapper graphicsContext;
 
     public SlideViewerComponent() {
         setupResponsiveCanvas();
@@ -53,6 +54,7 @@ public class SlideViewerComponent extends StackPane {
     private void setupResponsiveCanvas() {
         // Create the canvas
         canvas = new Canvas(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        graphicsContext = GraphicsContextWrapper.wrap(canvas.getGraphicsContext2D());
         
         // Add the canvas to this StackPane
         getChildren().add(canvas);
@@ -130,10 +132,9 @@ public class SlideViewerComponent extends StackPane {
     }
 
     public void draw() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
         double width = canvas.getWidth();
         double height = canvas.getHeight();
-        gc.clearRect(0, 0, width, height);
+        graphicsContext.clearRect(0, 0, width, height);
 
         if (presentation == null || presentation.getCurrentSlide() == null) {
             return;
@@ -156,16 +157,16 @@ public class SlideViewerComponent extends StackPane {
         if (backgroundPath != null && !backgroundPath.isEmpty()) {
             Image backgroundImage = loadImage(backgroundPath);
             if (backgroundImage != null) {
-                gc.drawImage(backgroundImage, 0, 0, width, height);
+                graphicsContext.drawImage(backgroundImage, 0, 0, width, height);
             } else {
                 // If background image fails to load, use a solid color
-                gc.setFill(javafx.scene.paint.Color.BLACK);
-                gc.fillRect(0, 0, width, height);
+                graphicsContext.setFill(javafx.scene.paint.Color.BLACK);
+                graphicsContext.fillRect(0, 0, width, height);
             }
         } else {
             // Default background
-            gc.setFill(javafx.scene.paint.Color.BLACK);
-            gc.fillRect(0, 0, width, height);
+            graphicsContext.setFill(javafx.scene.paint.Color.BLACK);
+            graphicsContext.fillRect(0, 0, width, height);
         }
 
         int y = scaledMargin;
@@ -184,16 +185,16 @@ public class SlideViewerComponent extends StackPane {
                 
                 // Create a scaled font for the title
                 Font scaledTitleFont = createScaledFont(BASE_TITLE_FONT_SIZE, itemStyle.getTitleFontName().name());
-                gc.setFont(scaledTitleFont);
-                gc.setFill(itemStyle.getTitleColor().getColor());
-                gc.setTextAlign(TextAlignment.CENTER);
+                graphicsContext.setFont(scaledTitleFont);
+                graphicsContext.setFill(itemStyle.getTitleColor().getColor());
+                graphicsContext.setTextAlign(TextAlignment.CENTER);
                 
                 // Center the title horizontally and vertically
                 double titleX = width / 2;
                 double titleY = height / 2; // True center of the slide
                 
                 // Draw the title centered
-                gc.fillText(item.getText(), titleX, titleY);
+                graphicsContext.fillText(item.getText(), titleX, titleY);
                 y = (int)titleY + scaledTitleHeight + 20; // Update y position after the title
             } else if (item instanceof SubtitleItem) {
                 // Add extra spacing if we were in a bullet group
@@ -204,10 +205,10 @@ public class SlideViewerComponent extends StackPane {
                 
                 // Create a scaled font for the subtitle
                 Font scaledSubtitleFont = createScaledFont(BASE_TITLE_FONT_SIZE, itemStyle.getTitleFontName().name());
-                gc.setFont(scaledSubtitleFont);
-                gc.setFill(itemStyle.getTitleColor().getColor());
-                gc.setTextAlign(TextAlignment.LEFT);
-                gc.fillText(item.getText(), scaledMargin, y + scaledSubtitleHeight);
+                graphicsContext.setFont(scaledSubtitleFont);
+                graphicsContext.setFill(itemStyle.getTitleColor().getColor());
+                graphicsContext.setTextAlign(TextAlignment.LEFT);
+                graphicsContext.fillText(item.getText(), scaledMargin, y + scaledSubtitleHeight);
                 y += scaledSubtitleHeight + 10;
             } else if (item instanceof BodyTextItem) {
                 // Add extra spacing if we were in a bullet group
@@ -218,10 +219,10 @@ public class SlideViewerComponent extends StackPane {
                 
                 // Create a scaled font for the body text
                 Font scaledBodyFont = createScaledFont(BASE_BODY_FONT_SIZE, itemStyle.getBodyFontName().name());
-                gc.setFont(scaledBodyFont);
-                gc.setFill(itemStyle.getBodyColor().getColor());
-                gc.setTextAlign(TextAlignment.LEFT);
-                gc.fillText(item.getText(), scaledMargin, y + scaledBodyHeight);
+                graphicsContext.setFont(scaledBodyFont);
+                graphicsContext.setFill(itemStyle.getBodyColor().getColor());
+                graphicsContext.setTextAlign(TextAlignment.LEFT);
+                graphicsContext.fillText(item.getText(), scaledMargin, y + scaledBodyHeight);
                 y += scaledBodyHeight + 10;
             } else if (item instanceof BulletPointItem) {
                 if (!inBulletGroup) {
@@ -232,10 +233,10 @@ public class SlideViewerComponent extends StackPane {
                 
                 // Create a scaled font for the bullet points
                 Font scaledBulletFont = createScaledFont(BASE_BODY_FONT_SIZE, itemStyle.getBodyFontName().name());
-                gc.setFont(scaledBulletFont);
-                gc.setFill(itemStyle.getBodyColor().getColor());
-                gc.setTextAlign(TextAlignment.LEFT);
-                gc.fillText("• " + item.getText(), scaledMargin + scaledIndent, y + scaledBulletHeight);
+                graphicsContext.setFont(scaledBulletFont);
+                graphicsContext.setFill(itemStyle.getBodyColor().getColor());
+                graphicsContext.setTextAlign(TextAlignment.LEFT);
+                graphicsContext.fillText("• " + item.getText(), scaledMargin + scaledIndent, y + scaledBulletHeight);
                 y += scaledBulletHeight;
                 
                 // Check if this is the last item
@@ -262,7 +263,7 @@ public class SlideViewerComponent extends StackPane {
                     double scaledWidth = imageWidth * scale;
                     double scaledHeight = imageHeight * scale;
                     double x = (width - scaledWidth) / 2;
-                    gc.drawImage(image, x, y, scaledWidth, scaledHeight);
+                    graphicsContext.drawImage(image, x, y, scaledWidth, scaledHeight);
                     y += scaledHeight + scaledMargin;
                 } else {
                     // If image fails to load, skip it

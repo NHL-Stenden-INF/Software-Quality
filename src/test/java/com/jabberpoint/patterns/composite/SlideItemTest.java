@@ -3,7 +3,7 @@ package com.jabberpoint.patterns.composite;
 import com.jabberpoint.style.Style;
 import com.jabberpoint.style.FontName;
 import com.jabberpoint.style.FontColor;
-import javafx.scene.canvas.GraphicsContext;
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,7 +16,7 @@ import org.mockito.MockitoAnnotations;
 public class SlideItemTest {
     
     @Mock
-    private GraphicsContext graphicsContext;
+    private GraphicsContextWrapper graphicsContext;
     
     private TestSlideItem slideItem;
     private Style style;
@@ -32,7 +32,7 @@ public class SlideItemTest {
         }
         
         @Override
-        public void draw(GraphicsContext gc, double x, double y) {
+        public void draw(GraphicsContextWrapper gc, double x, double y) {
             // Test implementation
         }
     }

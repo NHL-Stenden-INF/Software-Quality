@@ -1,8 +1,7 @@
 package com.jabberpoint.patterns.composite;
 
 import com.jabberpoint.style.Style;
-
-import javafx.scene.canvas.GraphicsContext;
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 import javafx.scene.text.Font;
 
 public class BodyTextItem extends SlideItem {
@@ -13,7 +12,7 @@ public class BodyTextItem extends SlideItem {
     }
 
     @Override
-    public void draw(GraphicsContext gc, double width, double height) {
+    public void draw(GraphicsContextWrapper gc, double width, double height) {
         Font font = Font.font(style.getFontName().toString(), style.getFontSize());
         gc.setFont(font);
         gc.setFill(style.getFontColor().getColor());
