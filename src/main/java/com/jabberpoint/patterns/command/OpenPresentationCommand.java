@@ -22,6 +22,11 @@ public class OpenPresentationCommand implements Command {
     @Override
     public void execute() {
         try {
+            // Clear the existing presentation before loading a new one
+            presentation.getSlides().clear();
+            presentation.setTitle("");
+            
+            // Load the new presentation
             xmlAccessor.loadPresentation(presentation, filename);
             viewerFrame.update(presentation);
         } catch (IOException e) {
