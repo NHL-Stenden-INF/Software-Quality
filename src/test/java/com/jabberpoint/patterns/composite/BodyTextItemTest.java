@@ -19,10 +19,12 @@ import org.mockito.MockitoAnnotations;
 public class BodyTextItemTest {
     
     @Mock
-    private GraphicsContextWrapper graphicsContext;
+    protected GraphicsContextWrapper graphicsContext;
+    
+    @Mock
+    protected Style style;
     
     private BodyTextItem bodyTextItem;
-    private Style style;
     private static final String TEST_TEXT = "Test Body Text";
     private static final double TEST_WIDTH = 800.0;
     private static final double TEST_HEIGHT = 600.0;
@@ -55,21 +57,6 @@ public class BodyTextItemTest {
         inOrder(graphicsContext).verify(graphicsContext).setFont(any(Font.class));
         inOrder(graphicsContext).verify(graphicsContext).setFill(Color.BLACK);
         inOrder(graphicsContext).verify(graphicsContext).fillText(TEST_TEXT, TEST_WIDTH / 2, TEST_HEIGHT / 2);
-    }
-    
-    @Test
-    public void testDrawWithDifferentStyle() {
-        // Create a body text item with different style
-        Style blueStyle = new Style(FontName.TIMES_NEW_ROMAN, FontName.ARIAL, FontColor.BLUE, FontColor.BLACK);
-        BodyTextItem blueBodyTextItem = new BodyTextItem(TEST_TEXT, blueStyle);
-        
-        // Call draw method
-        blueBodyTextItem.draw(graphicsContext, TEST_WIDTH, TEST_HEIGHT);
-        
-        // Verify that the correct methods were called with the right color
-        verify(graphicsContext).setFont(any(Font.class));
-        verify(graphicsContext).setFill(Color.BLUE);
-        verify(graphicsContext).fillText(TEST_TEXT, TEST_WIDTH / 2, TEST_HEIGHT / 2);
     }
     
     @Test

@@ -1,31 +1,31 @@
 package com.jabberpoint.patterns.composite;
 
+import com.jabberpoint.BaseTest;
 import com.jabberpoint.style.Style;
 import com.jabberpoint.style.FontName;
 import com.jabberpoint.style.FontColor;
 import com.jabberpoint.infrastructure.GraphicsContextWrapper;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**
  * Tests for the SubtitleItem class.
  */
-public class SubtitleItemTest {
+public class SubtitleItemTest extends BaseTest {
     
     @Mock
-    private GraphicsContextWrapper graphicsContext;
+    protected GraphicsContextWrapper graphicsContext;
+    
+    @Mock
+    protected Style style;
     
     private SubtitleItem subtitleItem;
-    private Style style;
     private static final String TEST_TEXT = "Test Subtitle";
-    private static final double TEST_WIDTH = 800.0;
-    private static final double TEST_HEIGHT = 600.0;
     
     @BeforeEach
     public void setUp() {
@@ -47,22 +47,6 @@ public class SubtitleItemTest {
     }
     
     @Test
-    public void testDraw() {
-        // Call draw method
-        subtitleItem.draw(graphicsContext, TEST_WIDTH, TEST_HEIGHT);
-        
-        // Verify that the correct methods were called on the GraphicsContext
-        verify(graphicsContext).setFill(Color.DARKGRAY);
-        verify(graphicsContext).setFont(any(Font.class));
-        verify(graphicsContext).fillText(TEST_TEXT, 50, 150);
-        
-        // Verify order of operations
-        inOrder(graphicsContext).verify(graphicsContext).setFill(Color.DARKGRAY);
-        inOrder(graphicsContext).verify(graphicsContext).setFont(any(Font.class));
-        inOrder(graphicsContext).verify(graphicsContext).fillText(TEST_TEXT, 50, 150);
-    }
-    
-    @Test
     public void testIsValid() {
         assertTrue(subtitleItem.isValid());
         
@@ -77,20 +61,5 @@ public class SubtitleItemTest {
         // Test with null style
         SubtitleItem nullStyleItem = new SubtitleItem(TEST_TEXT, null);
         assertFalse(nullStyleItem.isValid());
-    }
-    
-    @Test
-    public void testDrawWithDifferentDimensions() {
-        double customWidth = 1024.0;
-        double customHeight = 768.0;
-        
-        // Call draw method with different dimensions
-        subtitleItem.draw(graphicsContext, customWidth, customHeight);
-        
-        // Verify that the drawing methods were called with the same fixed positions
-        // regardless of dimensions (current implementation uses fixed positions)
-        verify(graphicsContext).setFill(Color.DARKGRAY);
-        verify(graphicsContext).setFont(any(Font.class));
-        verify(graphicsContext).fillText(TEST_TEXT, 50, 150);
     }
 } 

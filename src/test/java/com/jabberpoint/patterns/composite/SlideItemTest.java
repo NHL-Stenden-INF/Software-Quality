@@ -1,20 +1,23 @@
 package com.jabberpoint.patterns.composite;
 
+import com.jabberpoint.BaseTest;
 import com.jabberpoint.style.Style;
 import com.jabberpoint.style.FontName;
 import com.jabberpoint.style.FontColor;
 import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**
  * Tests for the SlideItem abstract class.
  */
-public class SlideItemTest {
+public class SlideItemTest extends BaseTest {
     
     @Mock
     private GraphicsContextWrapper graphicsContext;

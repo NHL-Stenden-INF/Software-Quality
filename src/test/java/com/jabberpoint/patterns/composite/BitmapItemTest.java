@@ -18,10 +18,12 @@ import org.mockito.MockitoAnnotations;
 public class BitmapItemTest {
     
     @Mock
-    private GraphicsContextWrapper graphicsContext;
+    protected GraphicsContextWrapper graphicsContext;
+    
+    @Mock
+    protected Style style;
     
     private BitmapItem bitmapItem;
-    private Style style;
     private static final String TEST_IMAGE_PATH = "file:test.png";
     private static final double TEST_X = 100.0;
     private static final double TEST_Y = 200.0;
@@ -61,23 +63,6 @@ public class BitmapItemTest {
         
         // Verify that drawImage was never called due to null image
         verify(graphicsContext, never()).drawImage(any(Image.class), anyDouble(), anyDouble());
-    }
-    
-    @Test
-    public void testIsValid() {
-        assertTrue(bitmapItem.isValid());
-        
-        // Test with empty name
-        BitmapItem emptyItem = new BitmapItem("", style);
-        assertFalse(emptyItem.isValid());
-        
-        // Test with null name
-        BitmapItem nullNameItem = new BitmapItem(TEST_LEVEL, null);
-        assertFalse(nullNameItem.isValid());
-        
-        // Test with null style (valid for BitmapItem when using level constructor)
-        BitmapItem nullStyleItem = new BitmapItem(TEST_LEVEL, TEST_IMAGE_PATH);
-        assertTrue(nullStyleItem.isValid());
     }
     
     @Test

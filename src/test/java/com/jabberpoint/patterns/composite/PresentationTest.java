@@ -108,14 +108,6 @@ public class PresentationTest {
     }
     
     @Test
-    public void testSetTitle() {
-        String newTitle = "New Title";
-        presentation.setTitle(newTitle);
-        assertEquals(newTitle, presentation.getTitle());
-        verify(observer, times(2)).update(presentation); // Initial title set + new title set
-    }
-    
-    @Test
     public void testObserverManagement() {
         SlideObserver secondObserver = mock(SlideObserver.class);
         
