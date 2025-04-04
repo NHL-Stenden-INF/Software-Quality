@@ -24,6 +24,11 @@ public enum FontColor {
 
     // Method to handle defaulting to BLACK if the value is invalid
     public static FontColor fromString(String colorStr) {
+        if (colorStr == null) {
+            System.err.println("Invalid fontColor value, applying default: ");
+            return FontColor.BLACK;
+        }
+        
         try {
             return FontColor.valueOf(colorStr.toUpperCase());
         } catch (IllegalArgumentException e) {

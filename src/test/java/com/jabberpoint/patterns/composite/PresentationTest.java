@@ -17,7 +17,7 @@ public class PresentationTest {
     private Presentation presentation;
     
     @Mock
-    protected SlideObserver observer;
+    private SlideObserver observer;
     
     private static final String TEST_TITLE = "Test Presentation";
     
