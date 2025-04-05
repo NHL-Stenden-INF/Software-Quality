@@ -6,20 +6,22 @@ import com.jabberpoint.patterns.command.Command;
 import com.jabberpoint.patterns.command.NextSlideCommand;
 import com.jabberpoint.patterns.command.PrevSlideCommand;
 import com.jabberpoint.patterns.composite.PresentationInterface;
+import javafx.application.Platform;
 import javafx.scene.control.MenuBar;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(BaseTest.class)
 class MenuControllerTest extends BaseTest {
 
     @Mock
@@ -37,10 +39,25 @@ class MenuControllerTest extends BaseTest {
     void setUp() {
         try {
             MockitoAnnotations.openMocks(this);
-            menuController = new MenuController(stage, presentation, null, xmlAccessor);
+            // Ensure we're on the JavaFX thread
+            if (!Platform.isFxApplicationThread()) {
+                CountDownLatch latch = new CountDownLatch(1);
+                Platform.runLater(() -> {
+                    try {
+                        menuController = new MenuController(stage, presentation, null, xmlAccessor);
+                    } catch (Exception e) {
+                        System.err.println("Error creating MenuController: " + e.getMessage());
+                        e.printStackTrace();
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+                latch.await(5, TimeUnit.SECONDS);
+            } else {
+                menuController = new MenuController(stage, presentation, null, xmlAccessor);
+            }
         } catch (Exception e) {
-            // Log the error but don't fail the test
-            System.err.println("Warning: Failed to initialize MenuController: " + e.getMessage());
+            System.err.println("Error in setUp: " + e.getMessage());
             e.printStackTrace();
         }
     }

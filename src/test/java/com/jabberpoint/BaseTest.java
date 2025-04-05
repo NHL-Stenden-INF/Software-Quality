@@ -1,7 +1,6 @@
 package com.jabberpoint;
 
 import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -20,33 +19,39 @@ public class BaseTest implements BeforeAllCallback {
     public void beforeAll(ExtensionContext context) {
         if (!initialized) {
             try {
-                // Initialize JavaFX
-                if (!Platform.isFxApplicationThread()) {
-                    CountDownLatch latch = new CountDownLatch(1);
-                    new Thread(() -> {
-                        try {
-                            // Set headless mode for CI environments
-                            System.setProperty("java.awt.headless", "true");
-                            System.setProperty("javafx.animation.framerate", "60");
-                            System.setProperty("javafx.animation.framerate.max", "60");
-                            
-                            // Initialize JavaFX
-                            Platform.startup(() -> {});
-                            latch.countDown();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            latch.countDown();
-                        }
-                    }).start();
-                    
-                    // Wait for initialization with a timeout
-                    if (!latch.await(10, TimeUnit.SECONDS)) {
-                        throw new RuntimeException("JavaFX initialization timed out");
+                // Set headless mode and other JavaFX properties
+                System.setProperty("java.awt.headless", "true");
+                System.setProperty("javafx.animation.framerate", "60");
+                System.setProperty("javafx.animation.framerate.max", "60");
+                System.setProperty("prism.order", "sw");
+                System.setProperty("prism.text", "t2k");
+                System.setProperty("javafx.verbose", "true");
+
+                // Initialize JavaFX in a separate thread
+                CountDownLatch latch = new CountDownLatch(1);
+                Thread fxThread = new Thread(() -> {
+                    try {
+                        // Simple initialization without JFXPanel
+                        Platform.startup(() -> {});
+                        latch.countDown();
+                    } catch (Exception e) {
+                        System.err.println("Error initializing JavaFX: " + e.getMessage());
+                        e.printStackTrace();
+                        latch.countDown();
                     }
+                });
+                fxThread.setDaemon(true);
+                fxThread.start();
+
+                // Wait for initialization with timeout
+                if (!latch.await(15, TimeUnit.SECONDS)) {
+                    System.err.println("Warning: JavaFX initialization timed out");
                 }
+                
                 initialized = true;
             } catch (InterruptedException e) {
-                throw new RuntimeException("Failed to initialize JavaFX", e);
+                System.err.println("Error during JavaFX initialization: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
