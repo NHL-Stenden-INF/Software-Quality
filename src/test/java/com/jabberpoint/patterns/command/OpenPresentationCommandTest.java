@@ -31,10 +31,8 @@ class OpenPresentationCommandTest {
 
     @Test
     void execute_ShouldLoadPresentation() throws IOException {
-        // Act
         command.execute();
 
-        // Assert
         verify(presentation).getSlides();
         verify(presentation).setTitle("");
         verify(xmlAccessor).loadPresentation(presentation, FILENAME);
@@ -43,16 +41,12 @@ class OpenPresentationCommandTest {
 
     @Test
     void execute_ShouldHandleIOException() throws IOException {
-        // Arrange
         doThrow(new IOException("Test exception")).when(xmlAccessor).loadPresentation(presentation, FILENAME);
 
-        // Act
         command.execute();
 
-        // Assert
         verify(presentation).getSlides();
         verify(presentation).setTitle("");
         verify(xmlAccessor).loadPresentation(presentation, FILENAME);
-        // The command should handle the exception and not propagate it
     }
 } 

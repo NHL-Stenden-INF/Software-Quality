@@ -30,7 +30,6 @@ class SavePresentationCommandTest {
 
     @Test
     void execute_ShouldCallSavePresentation() throws IOException {
-        // Act
         command.execute();
 
         // Assert
@@ -39,14 +38,10 @@ class SavePresentationCommandTest {
 
     @Test
     void execute_ShouldHandleIOException() throws IOException {
-        // Arrange
         doThrow(new IOException("Test exception")).when(xmlAccessor).savePresentation(presentation, FILENAME);
 
-        // Act
         command.execute();
 
-        // Assert
         verify(xmlAccessor).savePresentation(presentation, FILENAME);
-        // The command should handle the exception and not propagate it
     }
 } 

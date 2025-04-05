@@ -42,23 +42,18 @@ class GoToSlideCommandTest {
 
     @Test
     void execute_ShouldSetCurrentSlideIndex() {
-        // Act
         command.execute();
 
-        // Assert
         verify(presentation).setCurrentSlideIndex(SLIDE_NUMBER);
     }
 
     @Test
     void getItems_ShouldReturnDefensiveCopyOfSlideItems() {
-        // Arrange
         List<SlideItem> expectedItems = new ArrayList<>();
         when(slide3.getItems()).thenReturn(expectedItems);
 
-        // Act
         List<SlideItem> result = command.getItems();
 
-        // Assert
         verify(presentation).getSlides();
         verify(slide3).getItems();
         assert result != expectedItems : "Should return a defensive copy";

@@ -23,10 +23,8 @@ class PrevSlideCommandTest {
 
     @Test
     void execute_ShouldCallPreviousSlideOnPresentation() {
-        // Act
         command.execute();
 
-        // Assert
         verify(presentation).previousSlide();
     }
 } 

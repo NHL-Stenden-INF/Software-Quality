@@ -23,10 +23,8 @@ class NextSlideCommandTest {
 
     @Test
     void execute_ShouldCallNextSlideOnPresentation() {
-        // Act
         command.execute();
 
-        // Assert
         verify(presentation).nextSlide();
     }
 } 

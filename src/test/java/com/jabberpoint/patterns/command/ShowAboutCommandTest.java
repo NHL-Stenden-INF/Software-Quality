@@ -21,13 +21,10 @@ class ShowAboutCommandTest {
 
     @Test
     void execute_ShouldCallAboutBoxShow() {
-        // Arrange
         TestShowAboutCommand command = new TestShowAboutCommand();
 
-        // Act
         command.execute();
 
-        // Assert
         assertTrue(TestAboutBox.wasShowCalled(), "AboutBox.show() should have been called");
     }
 } 

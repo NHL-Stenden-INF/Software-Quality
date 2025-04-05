@@ -20,13 +20,10 @@ class ExitCommandTest {
 
     @Test
     void execute_ShouldSetExitCalledFlag() {
-        // Arrange
         TestExitCommand command = new TestExitCommand();
 
-        // Act
         command.execute();
 
-        // Assert
         assertTrue(TestExitCommand.wasExitCalled(), "Exit command should have been executed");
     }
 } 
