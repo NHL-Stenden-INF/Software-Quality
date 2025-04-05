@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class BaseTest implements BeforeAllCallback {
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static final CountDownLatch initLatch = new CountDownLatch(1);
+    private static final int TIMEOUT_SECONDS = 10;
 
     @Override
     public void beforeAll(ExtensionContext context) {
@@ -56,8 +57,9 @@ public class BaseTest implements BeforeAllCallback {
 
                 // Wait for initialization with timeout
                 System.out.println("Waiting for JavaFX initialization...");
-                if (!initLatch.await(15, TimeUnit.SECONDS)) {
+                if (!initLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                     System.err.println("Warning: JavaFX initialization timed out");
+                    throw new RuntimeException("JavaFX initialization timed out after " + TIMEOUT_SECONDS + " seconds");
                 }
                 
                 initialized.set(true);
@@ -66,6 +68,7 @@ public class BaseTest implements BeforeAllCallback {
                 System.err.println("Error during JavaFX initialization: " + e.getMessage());
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
+                throw new RuntimeException("JavaFX initialization interrupted", e);
             }
         } else {
             System.out.println("BaseTest already initialized");
@@ -80,10 +83,13 @@ public class BaseTest implements BeforeAllCallback {
         } else {
             System.out.println("Not on JavaFX thread, using Platform.runLater");
             CountDownLatch latch = new CountDownLatch(1);
+            AtomicBoolean actionCompleted = new AtomicBoolean(false);
+            
             Platform.runLater(() -> {
                 try {
                     System.out.println("Running action on JavaFX thread");
                     action.run();
+                    actionCompleted.set(true);
                 } catch (Exception e) {
                     System.err.println("Error in runAndWait action: " + e.getMessage());
                     e.printStackTrace();
@@ -92,16 +98,20 @@ public class BaseTest implements BeforeAllCallback {
                     latch.countDown();
                 }
             });
+
             try {
                 System.out.println("Waiting for action completion...");
-                if (!latch.await(5, TimeUnit.SECONDS)) {
-                    System.err.println("Warning: Action execution timed out");
+                if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    String errorMsg = "Action execution timed out after " + TIMEOUT_SECONDS + " seconds. Action completed: " + actionCompleted.get();
+                    System.err.println("Warning: " + errorMsg);
+                    throw new RuntimeException(errorMsg);
                 }
-                System.out.println("Action execution completed");
+                System.out.println("Action execution completed successfully");
             } catch (InterruptedException e) {
                 System.err.println("Error waiting for action execution: " + e.getMessage());
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
+                throw new RuntimeException("Action execution interrupted", e);
             }
         }
     }

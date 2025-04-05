@@ -14,9 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -43,21 +40,28 @@ class MenuControllerTest extends BaseTest {
             MockitoAnnotations.openMocks(this);
             
             System.out.println("Creating MenuController...");
-            runAndWait(() -> {
-                try {
-                    System.out.println("Creating MenuController on JavaFX thread");
-                    menuController = new MenuController(stage, presentation, null, xmlAccessor);
-                    System.out.println("MenuController created successfully");
-                } catch (Exception e) {
-                    System.err.println("Error creating MenuController: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            });
+            try {
+                runAndWait(() -> {
+                    try {
+                        System.out.println("Creating MenuController on JavaFX thread");
+                        menuController = new MenuController(stage, presentation, null, xmlAccessor);
+                        System.out.println("MenuController created successfully");
+                    } catch (Exception e) {
+                        System.err.println("Error creating MenuController: " + e.getMessage());
+                        e.printStackTrace();
+                        throw e; // Re-throw to be caught by the outer try-catch
+                    }
+                });
+            } catch (RuntimeException e) {
+                System.err.println("Failed to create MenuController: " + e.getMessage());
+                throw e;
+            }
             
             System.out.println("MenuControllerTest.setUp completed");
         } catch (Exception e) {
             System.err.println("Error in setUp: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("Failed to set up MenuControllerTest", e);
         }
     }
     
