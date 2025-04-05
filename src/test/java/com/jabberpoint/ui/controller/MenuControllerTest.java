@@ -6,22 +6,20 @@ import com.jabberpoint.patterns.command.Command;
 import com.jabberpoint.patterns.command.NextSlideCommand;
 import com.jabberpoint.patterns.command.PrevSlideCommand;
 import com.jabberpoint.patterns.composite.PresentationInterface;
-import javafx.application.Platform;
 import javafx.scene.control.MenuBar;
 import javafx.stage.Stage;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.concurrent.CountDownLatch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(BaseTest.class)
 class MenuControllerTest extends BaseTest {
 
     @Mock
@@ -34,14 +32,6 @@ class MenuControllerTest extends BaseTest {
     private XMLAccessor xmlAccessor;
     
     private MenuController menuController;
-    
-    @BeforeAll
-    static void initializeJavaFX() throws InterruptedException {
-        // Initialize JavaFX
-        CountDownLatch latch = new CountDownLatch(1);
-        Platform.startup(() -> latch.countDown());
-        latch.await();
-    }
     
     @BeforeEach
     void setUp() {
