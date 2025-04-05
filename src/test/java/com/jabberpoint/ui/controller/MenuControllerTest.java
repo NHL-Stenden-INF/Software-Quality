@@ -39,23 +39,14 @@ class MenuControllerTest extends BaseTest {
     void setUp() {
         try {
             MockitoAnnotations.openMocks(this);
-            // Ensure we're on the JavaFX thread
-            if (!Platform.isFxApplicationThread()) {
-                CountDownLatch latch = new CountDownLatch(1);
-                Platform.runLater(() -> {
-                    try {
-                        menuController = new MenuController(stage, presentation, null, xmlAccessor);
-                    } catch (Exception e) {
-                        System.err.println("Error creating MenuController: " + e.getMessage());
-                        e.printStackTrace();
-                    } finally {
-                        latch.countDown();
-                    }
-                });
-                latch.await(5, TimeUnit.SECONDS);
-            } else {
-                menuController = new MenuController(stage, presentation, null, xmlAccessor);
-            }
+            runAndWait(() -> {
+                try {
+                    menuController = new MenuController(stage, presentation, null, xmlAccessor);
+                } catch (Exception e) {
+                    System.err.println("Error creating MenuController: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
         } catch (Exception e) {
             System.err.println("Error in setUp: " + e.getMessage());
             e.printStackTrace();

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Base test class for all test classes.
@@ -13,11 +14,12 @@ import java.util.concurrent.TimeUnit;
  */
 @ExtendWith(BaseTest.class)
 public class BaseTest implements BeforeAllCallback {
-    private static boolean initialized = false;
+    private static final AtomicBoolean initialized = new AtomicBoolean(false);
+    private static final CountDownLatch initLatch = new CountDownLatch(1);
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        if (!initialized) {
+        if (!initialized.get()) {
             try {
                 // Set headless mode and other JavaFX properties
                 System.setProperty("java.awt.headless", "true");
@@ -28,30 +30,61 @@ public class BaseTest implements BeforeAllCallback {
                 System.setProperty("javafx.verbose", "true");
 
                 // Initialize JavaFX in a separate thread
-                CountDownLatch latch = new CountDownLatch(1);
                 Thread fxThread = new Thread(() -> {
                     try {
-                        // Simple initialization without JFXPanel
-                        Platform.startup(() -> {});
-                        latch.countDown();
+                        if (!Platform.isFxApplicationThread()) {
+                            Platform.startup(() -> {
+                                System.out.println("JavaFX Platform started successfully");
+                                initLatch.countDown();
+                            });
+                        } else {
+                            System.out.println("Already on JavaFX thread");
+                            initLatch.countDown();
+                        }
                     } catch (Exception e) {
                         System.err.println("Error initializing JavaFX: " + e.getMessage());
                         e.printStackTrace();
-                        latch.countDown();
+                        initLatch.countDown();
                     }
                 });
                 fxThread.setDaemon(true);
                 fxThread.start();
 
                 // Wait for initialization with timeout
-                if (!latch.await(15, TimeUnit.SECONDS)) {
+                if (!initLatch.await(15, TimeUnit.SECONDS)) {
                     System.err.println("Warning: JavaFX initialization timed out");
                 }
                 
-                initialized = true;
+                initialized.set(true);
+                System.out.println("BaseTest initialization completed");
             } catch (InterruptedException e) {
                 System.err.println("Error during JavaFX initialization: " + e.getMessage());
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    protected void runAndWait(Runnable action) {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+        } else {
+            CountDownLatch latch = new CountDownLatch(1);
+            Platform.runLater(() -> {
+                try {
+                    action.run();
+                } finally {
+                    latch.countDown();
+                }
+            });
+            try {
+                if (!latch.await(5, TimeUnit.SECONDS)) {
+                    System.err.println("Warning: Action execution timed out");
+                }
+            } catch (InterruptedException e) {
+                System.err.println("Error waiting for action execution: " + e.getMessage());
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
     }
