@@ -37,16 +37,24 @@ class MenuControllerTest extends BaseTest {
     
     @BeforeEach
     void setUp() {
+        System.out.println("MenuControllerTest.setUp called");
         try {
+            System.out.println("Initializing mocks...");
             MockitoAnnotations.openMocks(this);
+            
+            System.out.println("Creating MenuController...");
             runAndWait(() -> {
                 try {
+                    System.out.println("Creating MenuController on JavaFX thread");
                     menuController = new MenuController(stage, presentation, null, xmlAccessor);
+                    System.out.println("MenuController created successfully");
                 } catch (Exception e) {
                     System.err.println("Error creating MenuController: " + e.getMessage());
                     e.printStackTrace();
                 }
             });
+            
+            System.out.println("MenuControllerTest.setUp completed");
         } catch (Exception e) {
             System.err.println("Error in setUp: " + e.getMessage());
             e.printStackTrace();
@@ -55,17 +63,22 @@ class MenuControllerTest extends BaseTest {
     
     @Test
     void testConstructor() {
+        System.out.println("Running testConstructor");
         assertNotNull(menuController, "MenuController should not be null");
+        System.out.println("testConstructor completed");
     }
     
     @Test
     void testGetMenuBar() {
+        System.out.println("Running testGetMenuBar");
         MenuBar menuBar = menuController.getMenuBar();
         assertNotNull(menuBar, "MenuBar should not be null");
+        System.out.println("testGetMenuBar completed");
     }
     
     @Test
     void testCommandExecution() {
+        System.out.println("Running testCommandExecution");
         Command nextCommand = new NextSlideCommand(presentation);
         Command prevCommand = new PrevSlideCommand(presentation);
 
@@ -74,14 +87,17 @@ class MenuControllerTest extends BaseTest {
 
         verify(presentation, times(1)).nextSlide();
         verify(presentation, times(1)).previousSlide();
+        System.out.println("testCommandExecution completed");
     }
     
     @Test
     void testPresentationInterface() {
+        System.out.println("Running testPresentationInterface");
         when(presentation.getSlideCount()).thenReturn(5);
         when(presentation.getCurrentSlide()).thenReturn(null);
         
         assertEquals(5, presentation.getSlideCount());
         assertNull(presentation.getCurrentSlide());
+        System.out.println("testPresentationInterface completed");
     }
 } 
