@@ -40,22 +40,9 @@ class MenuControllerTest extends BaseTest {
             MockitoAnnotations.openMocks(this);
             
             System.out.println("Creating MenuController...");
-            try {
-                runAndWait(() -> {
-                    try {
-                        System.out.println("Creating MenuController on JavaFX thread");
-                        menuController = new MenuController(stage, presentation, null, xmlAccessor);
-                        System.out.println("MenuController created successfully");
-                    } catch (Exception e) {
-                        System.err.println("Error creating MenuController: " + e.getMessage());
-                        e.printStackTrace();
-                        throw e; // Re-throw to be caught by the outer try-catch
-                    }
-                });
-            } catch (RuntimeException e) {
-                System.err.println("Failed to create MenuController: " + e.getMessage());
-                throw e;
-            }
+            // Create the MenuController directly without using runAndWait
+            menuController = new MenuController(stage, presentation, null, xmlAccessor);
+            System.out.println("MenuController created successfully");
             
             System.out.println("MenuControllerTest.setUp completed");
         } catch (Exception e) {

@@ -32,43 +32,30 @@ public class BaseTest implements BeforeAllCallback {
                 System.setProperty("prism.text", "t2k");
                 System.setProperty("javafx.verbose", "true");
 
-                // Initialize JavaFX in a separate thread
-                Thread fxThread = new Thread(() -> {
-                    try {
-                        System.out.println("Starting JavaFX initialization thread...");
-                        if (!Platform.isFxApplicationThread()) {
-                            System.out.println("Not on JavaFX thread, starting platform...");
-                            Platform.startup(() -> {
-                                System.out.println("JavaFX Platform started successfully");
-                                initLatch.countDown();
-                            });
-                        } else {
-                            System.out.println("Already on JavaFX thread");
-                            initLatch.countDown();
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error initializing JavaFX: " + e.getMessage());
-                        e.printStackTrace();
+                // Initialize JavaFX directly
+                System.out.println("Starting JavaFX platform directly...");
+                try {
+                    Platform.startup(() -> {
+                        System.out.println("JavaFX Platform started successfully");
                         initLatch.countDown();
-                    }
-                });
-                fxThread.setDaemon(true);
-                fxThread.start();
-
-                // Wait for initialization with timeout
-                System.out.println("Waiting for JavaFX initialization...");
+                    });
+                } catch (Exception e) {
+                    System.err.println("Error starting JavaFX platform: " + e.getMessage());
+                    e.printStackTrace();
+                    initLatch.countDown();
+                }
+                
+                // Wait for initialization to complete
                 if (!initLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                     System.err.println("Warning: JavaFX initialization timed out");
-                    throw new RuntimeException("JavaFX initialization timed out after " + TIMEOUT_SECONDS + " seconds");
                 }
                 
                 initialized.set(true);
                 System.out.println("BaseTest initialization completed");
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 System.err.println("Error during JavaFX initialization: " + e.getMessage());
                 e.printStackTrace();
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("JavaFX initialization interrupted", e);
+                throw new RuntimeException("JavaFX initialization failed", e);
             }
         } else {
             System.out.println("BaseTest already initialized");
@@ -81,37 +68,30 @@ public class BaseTest implements BeforeAllCallback {
             System.out.println("Already on JavaFX thread, running action directly");
             action.run();
         } else {
-            System.out.println("Not on JavaFX thread, using Platform.runLater");
-            CountDownLatch latch = new CountDownLatch(1);
-            AtomicBoolean actionCompleted = new AtomicBoolean(false);
-            
-            Platform.runLater(() -> {
-                try {
-                    System.out.println("Running action on JavaFX thread");
-                    action.run();
-                    actionCompleted.set(true);
-                } catch (Exception e) {
-                    System.err.println("Error in runAndWait action: " + e.getMessage());
-                    e.printStackTrace();
-                } finally {
-                    System.out.println("Action completed, counting down latch");
-                    latch.countDown();
-                }
-            });
-
+            System.out.println("Not on JavaFX thread, using direct execution");
             try {
-                System.out.println("Waiting for action completion...");
-                if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                    String errorMsg = "Action execution timed out after " + TIMEOUT_SECONDS + " seconds. Action completed: " + actionCompleted.get();
-                    System.err.println("Warning: " + errorMsg);
-                    throw new RuntimeException(errorMsg);
+                // Create a new thread to run the action
+                Thread actionThread = new Thread(() -> {
+                    try {
+                        System.out.println("Running action on new thread");
+                        action.run();
+                        System.out.println("Action completed successfully");
+                    } catch (Exception e) {
+                        System.err.println("Error in action execution: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                });
+                actionThread.start();
+                actionThread.join(TIMEOUT_SECONDS * 1000);
+                
+                if (actionThread.isAlive()) {
+                    System.err.println("Warning: Action execution timed out after " + TIMEOUT_SECONDS + " seconds");
+                    actionThread.interrupt();
                 }
-                System.out.println("Action execution completed successfully");
             } catch (InterruptedException e) {
-                System.err.println("Error waiting for action execution: " + e.getMessage());
+                System.err.println("Action execution interrupted: " + e.getMessage());
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
-                throw new RuntimeException("Action execution interrupted", e);
             }
         }
     }
