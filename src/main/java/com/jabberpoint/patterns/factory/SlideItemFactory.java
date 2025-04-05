@@ -11,6 +11,10 @@ import com.jabberpoint.style.Style;
 
 public class SlideItemFactory {
     public static SlideItem createSlideItem(ItemType type, String content, Style style) {
+        if (type == null) {
+            throw new IllegalArgumentException("Item cannot be null");
+        }
+
         switch(type) {
             case TITLE:
                 return new TitleItem(content, style);

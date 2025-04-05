@@ -11,8 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.*;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 /**
  * Tests for the SlideItem abstract class.
@@ -37,7 +40,8 @@ public class SlideItemTest extends BaseTest {
         
         @Override
         public void draw(GraphicsContextWrapper gc, double x, double y) {
-            // Test implementation
+            gc.setFill(Color.BLACK);
+            gc.fillText(getText(), x, y);
         }
     }
     
@@ -93,5 +97,19 @@ public class SlideItemTest extends BaseTest {
     @Test
     public void testGetLevel() {
         assertEquals(1, slideItem.getLevel());
+    }
+    
+    @Test
+    public void testDraw() {
+        double testX = 100.0;
+        double testY = 200.0;
+
+        slideItem.draw(graphicsContext, testX, testY);
+
+        verify(graphicsContext).setFill(Color.BLACK);
+        verify(graphicsContext).fillText("Test Text", testX, testY);
+
+        inOrder(graphicsContext).verify(graphicsContext).setFill(Color.BLACK);
+        inOrder(graphicsContext).verify(graphicsContext).fillText("Test Text", testX, testY);
     }
 } 

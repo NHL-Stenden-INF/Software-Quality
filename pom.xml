@@ -26,6 +26,11 @@
             <version>13</version>
         </dependency>
         <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>13</version>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.8.2</version>
@@ -127,7 +132,6 @@
                         --add-opens com.jabberpoint/com.jabberpoint.patterns.composite=ALL-UNNAMED
                         --add-opens com.jabberpoint/com.jabberpoint.style=ALL-UNNAMED
                         --add-opens com.jabberpoint/com.jabberpoint.infrastructure=ALL-UNNAMED
-                        --add-opens javafx.controls/javafx.scene.canvas=ALL-UNNAMED
                         --add-opens javafx.graphics/javafx.scene.canvas=ALL-UNNAMED
                     </argLine>
                 </configuration>

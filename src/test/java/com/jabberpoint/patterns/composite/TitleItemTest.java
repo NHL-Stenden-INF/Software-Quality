@@ -5,11 +5,16 @@ import com.jabberpoint.style.Style;
 import com.jabberpoint.style.FontName;
 import com.jabberpoint.style.FontColor;
 import com.jabberpoint.infrastructure.GraphicsContextWrapper;
+import javafx.scene.text.Font;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -56,5 +61,18 @@ public class TitleItemTest extends BaseTest {
         // Test with null style
         TitleItem nullStyleItem = new TitleItem(TEST_TEXT, null);
         assertFalse(nullStyleItem.isValid());
+    }
+
+    @Test
+    public void testDraw() {
+        double testX = 100;
+        double testY = 200;
+        Font font = Font.font(style.getFontName().toString(), style.getFontSize());
+
+        titleItem.draw(graphicsContext, testX, testY);
+
+        verify(graphicsContext).setFill(style.getFontColor().getColor());
+        verify(graphicsContext).setFont(font);
+        verify(graphicsContext).fillText(titleItem.getText(), testX / 2, testY / 4);
     }
 } 
