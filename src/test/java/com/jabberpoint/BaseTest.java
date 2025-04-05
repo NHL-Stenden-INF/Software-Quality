@@ -24,10 +24,25 @@ public class BaseTest implements BeforeAllCallback {
                 if (!Platform.isFxApplicationThread()) {
                     CountDownLatch latch = new CountDownLatch(1);
                     new Thread(() -> {
-                        Platform.startup(() -> {});
-                        latch.countDown();
+                        try {
+                            // Set headless mode for CI environments
+                            System.setProperty("java.awt.headless", "true");
+                            System.setProperty("javafx.animation.framerate", "60");
+                            System.setProperty("javafx.animation.framerate.max", "60");
+                            
+                            // Initialize JavaFX
+                            Platform.startup(() -> {});
+                            latch.countDown();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            latch.countDown();
+                        }
                     }).start();
-                    latch.await(5, TimeUnit.SECONDS);
+                    
+                    // Wait for initialization with a timeout
+                    if (!latch.await(10, TimeUnit.SECONDS)) {
+                        throw new RuntimeException("JavaFX initialization timed out");
+                    }
                 }
                 initialized = true;
             } catch (InterruptedException e) {
