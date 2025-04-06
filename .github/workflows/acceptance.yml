@@ -34,7 +34,22 @@ jobs:
         run: |
           # Extract components
           CURRENT_VERSION=${{ steps.version.outputs.version }}
-          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
+          
+          # Handle versions in format MAJOR.MINOR-SNAPSHOT
+          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            
+            # Change to RC version for acceptance
+            NEW_VERSION="$MAJOR.$MINOR-RC"
+            
+            echo "RC version: $NEW_VERSION"
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            
+            # Update pom.xml with new version
+            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          # Handle versions in format MAJOR.MINOR.PATCH-SNAPSHOT
+          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             PATCH="${BASH_REMATCH[3]}"

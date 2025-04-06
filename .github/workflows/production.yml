@@ -34,7 +34,20 @@ jobs:
         run: |
           # Extract components
           CURRENT_VERSION=${{ steps.version.outputs.version }}
-          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+          
+          # Handle versions in format MAJOR.MINOR
+          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            
+            # For the next dev cycle, increment minor version
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="$MAJOR.$NEW_MINOR-SNAPSHOT"
+            
+            echo "Next development version: $NEW_VERSION"
+            echo "next_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          # Handle versions in format MAJOR.MINOR.PATCH
+          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             PATCH="${BASH_REMATCH[3]}"
