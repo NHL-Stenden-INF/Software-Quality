@@ -119,3 +119,13 @@ jobs:
           cache: maven
       - name: "Build production package"
         run: mvn clean package
+      - name: "Publish to GitHub Packages"
+        run: mvn deploy -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Create GitHub Release"
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/*.jar
+          generate_release_notes: true
+          tag_name: v${{ github.run_number }}
