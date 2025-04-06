@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
@@ -36,7 +39,7 @@ jobs:
           CURRENT_VERSION=${{ steps.version.outputs.version }}
           
           # Handle versions in format MAJOR.MINOR-RC
-          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-RC)? ]]; then
+          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-RC)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             
@@ -49,7 +52,7 @@ jobs:
             # Update pom.xml with new version
             mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
           # Handle versions in format MAJOR.MINOR.PATCH-RC
-          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-RC)? ]]; then
+          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-RC)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             PATCH="${BASH_REMATCH[3]}"
@@ -62,6 +65,10 @@ jobs:
             
             # Update pom.xml with new version
             mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          # Already release version, no change needed
+          elif [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)$ ]] || [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "Version already in release format: $CURRENT_VERSION"
+            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           else
             echo "Failed to parse version: $CURRENT_VERSION"
             exit 1
@@ -76,7 +83,7 @@ jobs:
           git config --global user.email 'actions@github.com'
           git add pom.xml
           git commit -m "Finalize version to ${{ steps.release_version.outputs.new_version }}" || echo "No changes to commit"
-          git push
+          git push origin test
           
       - name: "Create PR from test to production"
         uses: peter-evans/create-pull-request@v5
@@ -93,4 +100,4 @@ jobs:
             Once merged, the production workflow will automatically run.
           branch: "auto-pr-test-to-production"
           base: "production"
-          delete-branch: true 
+          delete-branch: true

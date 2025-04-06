@@ -15,19 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
       - name: "Set up JDK 11"
         uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-          
-      - name: "Configure Git and pull latest"
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git fetch --prune --unshallow || git fetch --prune
-          git pull origin test
 
       - name: "Extract version from pom.xml"
         id: version
@@ -69,6 +65,10 @@ jobs:
             
             # Update pom.xml with new version
             mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          # Already RC version, no change needed
+          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-RC) ]] || [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-RC) ]]; then
+            echo "Version already has RC suffix: $CURRENT_VERSION"
+            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           else
             echo "Failed to parse version: $CURRENT_VERSION"
             exit 1
@@ -79,6 +79,8 @@ jobs:
         
       - name: "Commit version changes and push"
         run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
           git add pom.xml
           git commit -m "Update version to ${{ steps.rc_version.outputs.new_version }}" || echo "No changes to commit"
           git push origin acceptance
@@ -98,4 +100,4 @@ jobs:
             Once merged, the test workflow will automatically run.
           branch: "auto-pr-acceptance-to-test"
           base: "test"
-          delete-branch: true 
+          delete-branch: true
