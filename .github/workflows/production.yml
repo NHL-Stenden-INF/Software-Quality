@@ -36,7 +36,17 @@ jobs:
         run: mvn clean package
         
       - name: "Publish to GitHub Packages"
-        run: mvn deploy -DskipTests
+        run: |
+          # Check if artifact already exists in GitHub Packages
+          ARTIFACT_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://maven.pkg.github.com/NHL-Stenden-INF/Software-Quality/com/jabberpoint/jabberpoint/${{ steps.version.outputs.version }}/jabberpoint-${{ steps.version.outputs.version }}.pom")
+          
+          if [ "$ARTIFACT_EXISTS" == "200" ]; then
+            echo "Artifact version ${{ steps.version.outputs.version }} already exists in GitHub Packages, skipping deployment."
+          else
+            mvn deploy -DskipTests
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
