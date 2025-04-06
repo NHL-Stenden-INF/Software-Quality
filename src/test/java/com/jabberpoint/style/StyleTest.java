@@ -20,7 +20,8 @@ public class StyleTest {
         
         // Test compatibility methods
         assertEquals(FontName.ARIAL, style.getFontName());
-        assertEquals(20.0, style.getFontSize());
+        assertEquals(FontSize.MEDIUM, style.getFontSize());
+        assertEquals(24.0, style.getFontSizeValue());  // MEDIUM is 24.0
         assertEquals(FontColor.BLACK, style.getFontColor());
     }
     
@@ -35,7 +36,8 @@ public class StyleTest {
         
         // Test compatibility methods
         assertEquals(FontName.COMIC_SANS, style.getFontName());
-        assertEquals(20.0, style.getFontSize());
+        assertEquals(FontSize.MEDIUM, style.getFontSize());
+        assertEquals(24.0, style.getFontSizeValue());  // MEDIUM is 24.0
         assertEquals(FontColor.BLUE, style.getFontColor());
     }
     
@@ -47,11 +49,14 @@ public class StyleTest {
         style.setBodyFontName(FontName.IMPACT);
         style.setTitleColor(FontColor.GREEN);
         style.setBodyColor(FontColor.YELLOW);
+        style.setFontSize(FontSize.LARGE);
         
         assertEquals(FontName.GEORGIA, style.getTitleFontName());
         assertEquals(FontName.IMPACT, style.getBodyFontName());
         assertEquals(FontColor.GREEN, style.getTitleColor());
         assertEquals(FontColor.YELLOW, style.getBodyColor());
+        assertEquals(FontSize.LARGE, style.getFontSize());
+        assertEquals(32.0, style.getFontSizeValue());  // LARGE is 32.0
     }
     
     @Test

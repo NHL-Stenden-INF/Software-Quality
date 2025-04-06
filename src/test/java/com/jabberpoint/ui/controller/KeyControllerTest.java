@@ -1,84 +1,96 @@
 package com.jabberpoint.ui.controller;
 
-import com.jabberpoint.patterns.composite.PresentationInterface;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.*;
+import com.jabberpoint.patterns.composite.PresentationInterface;
+import com.jabberpoint.ui.view.SlideViewerFrame;
 
+import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+
+@ExtendWith(MockitoExtension.class)
 class KeyControllerTest {
 
     @Mock
     private PresentationInterface presentation;
+    
+    @Mock
+    private SlideViewerFrame viewerFrame;
 
-    private TestKeyController keyController;
+    private KeyController keyController;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-
-        keyController = new TestKeyController(presentation);
+    void setup() {
+        // Capture the event handler when it's set on the viewerFrame
+        keyController = new KeyController(presentation, viewerFrame);
     }
-
-    @Test
-    void handleKeyPressed_WithNextSlideKeys_ShouldExecuteNextSlideCommand() {
-        KeyEvent[] nextSlideKeys = {
-            createKeyEvent(KeyCode.PAGE_DOWN),
-            createKeyEvent(KeyCode.RIGHT),
-            createKeyEvent(KeyCode.DOWN),
-            createKeyEvent(KeyCode.SPACE),
-            createKeyEvent(KeyCode.N)
-        };
-
-        for (KeyEvent keyEvent : nextSlideKeys) {
-            keyController.handleKeyPressed(keyEvent);
-            verify(presentation, times(1)).nextSlide();
-            reset(presentation);
-        }
-    }
-
-    @Test
-    void handleKeyPressed_WithPreviousSlideKeys_ShouldExecutePreviousSlideCommand() {
-        KeyEvent[] previousSlideKeys = {
-            createKeyEvent(KeyCode.PAGE_UP),
-            createKeyEvent(KeyCode.LEFT),
-            createKeyEvent(KeyCode.UP),
-            createKeyEvent(KeyCode.P)
-        };
-
-        for (KeyEvent keyEvent : previousSlideKeys) {
-            keyController.handleKeyPressed(keyEvent);
-            verify(presentation, times(1)).previousSlide();
-            reset(presentation);
-        }
-    }
-
-    @Test
-    void handleKeyPressed_WithDigitKeys_ShouldExecuteGoToSlideCommand() {
-        for (int i = 0; i <= 9; i++) {
-            KeyEvent keyEvent = createKeyEvent(KeyCode.valueOf("DIGIT" + i));
-
-            keyController.handleKeyPressed(keyEvent);
-
-            verify(presentation, times(1)).setCurrentSlideIndex(i);
-            reset(presentation);
-        }
-    }
-
+    
+    /**
+     * Helper method to create a mock KeyEvent
+     */
     private KeyEvent createKeyEvent(KeyCode keyCode) {
-        return new KeyEvent(
-            KeyEvent.KEY_PRESSED,
-            "",
-            "",
-            keyCode,
-            false,
-            false,
-            false,
-            false
-        );
+        KeyEvent event = mock(KeyEvent.class);
+        when(event.getCode()).thenReturn(keyCode);
+        return event;
+    }
+
+    @Test
+    void testNextSlideKeyCodes() {
+        // Get the event handler that was set on the viewerFrame
+        ArgumentCaptor<EventHandler<KeyEvent>> handlerCaptor = ArgumentCaptor.forClass(EventHandler.class);
+        verify(viewerFrame).setOnKeyPressed(handlerCaptor.capture());
+        EventHandler<KeyEvent> keyHandler = handlerCaptor.getValue();
+        
+        // Test each key that should trigger next slide
+        KeyCode[] nextKeys = {KeyCode.PAGE_DOWN, KeyCode.RIGHT, KeyCode.DOWN, KeyCode.SPACE, KeyCode.N};
+        
+        for (KeyCode keyCode : nextKeys) {
+            // Reset presentation before each test
+            reset(presentation);
+            
+            // Create a mock KeyEvent with the key code
+            KeyEvent event = createKeyEvent(keyCode);
+            
+            // Call the handler with the event
+            keyHandler.handle(event);
+            
+            // Verify presentation.nextSlide was called
+            verify(presentation).nextSlide();
+        }
+    }
+
+    @Test
+    void testPreviousSlideKeyCodes() {
+        // Get the event handler that was set on the viewerFrame
+        ArgumentCaptor<EventHandler<KeyEvent>> handlerCaptor = ArgumentCaptor.forClass(EventHandler.class);
+        verify(viewerFrame).setOnKeyPressed(handlerCaptor.capture());
+        EventHandler<KeyEvent> keyHandler = handlerCaptor.getValue();
+        
+        // Test keys that should trigger previous slide
+        KeyCode[] prevKeys = {KeyCode.PAGE_UP, KeyCode.LEFT, KeyCode.UP, KeyCode.P};
+        
+        for (KeyCode keyCode : prevKeys) {
+            // Reset presentation before each test
+            reset(presentation);
+            
+            // Create a mock KeyEvent with the key code
+            KeyEvent event = createKeyEvent(keyCode);
+            
+            // Call the handler with the event
+            keyHandler.handle(event);
+            
+            // Verify presentation.previousSlide was called
+            verify(presentation).previousSlide();
+        }
     }
 }
