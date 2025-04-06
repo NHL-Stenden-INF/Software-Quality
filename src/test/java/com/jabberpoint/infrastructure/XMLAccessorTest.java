@@ -1,30 +1,140 @@
 package com.jabberpoint.infrastructure;
 
-import com.jabberpoint.patterns.composite.*;
-import com.jabberpoint.style.FontName;
-import com.jabberpoint.style.FontColor;
-import com.jabberpoint.style.Style;
-import com.jabberpoint.patterns.observer.SlideObserver;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.jabberpoint.patterns.composite.BitmapItem;
+import com.jabberpoint.patterns.composite.BodyTextItem;
+import com.jabberpoint.patterns.composite.BulletPointItem;
+import com.jabberpoint.patterns.composite.PresentationInterface;
+import com.jabberpoint.patterns.composite.Slide;
+import com.jabberpoint.patterns.composite.SubtitleItem;
+import com.jabberpoint.patterns.composite.TitleItem;
+import com.jabberpoint.patterns.observer.SlideObserver;
+import com.jabberpoint.style.FontColor;
+import com.jabberpoint.style.FontName;
+import com.jabberpoint.style.Style;
+
+/**
+ * Test implementation of PresentationInterface for XMLAccessorTest
+ */
+class TestPresentation implements PresentationInterface {
+    private String title = "";
+    private final List<Slide> slides = new ArrayList<>();
+    private int currentSlideIndex = 0;
+    private final List<SlideObserver> observers = new ArrayList<>();
+    private boolean notifyEnabled = true;
+
+    @Override
+    public String getTitle() {
+        return title;
+    }
+
+    @Override
+    public void setTitle(String title) {
+        this.title = title;
+        notifyObservers();
+    }
+
+    @Override
+    public void addSlide(Slide slide) {
+        slides.add(slide);
+        notifyObservers();
+    }
+
+    @Override
+    public int getSlideCount() {
+        return slides.size();
+    }
+
+    @Override
+    public List<Slide> getSlides() {
+        return slides;
+    }
+
+    @Override
+    public void addObserver(SlideObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(SlideObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public Slide getCurrentSlide() {
+        return slides.isEmpty() ? null : slides.get(currentSlideIndex);
+    }
+
+    @Override
+    public void previousSlide() {
+        if (currentSlideIndex > 0) {
+            currentSlideIndex--;
+            notifyObservers();
+        }
+    }
+
+    @Override
+    public void nextSlide() {
+        if (currentSlideIndex < slides.size() - 1) {
+            currentSlideIndex++;
+            notifyObservers();
+        }
+    }
+
+    @Override
+    public void setCurrentSlideIndex(int index) {
+        if (index >= 0 && index < slides.size()) {
+            currentSlideIndex = index;
+            notifyObservers();
+        }
+    }
+
+    @Override
+    public void copyFrom(PresentationInterface other) {
+        this.title = other.getTitle();
+        this.slides.clear();
+        this.slides.addAll(other.getSlides());
+        this.currentSlideIndex = 0;
+        notifyObservers();
+    }
+    
+    // Implementation of new methods without @Override annotations
+    public boolean isNotifyEnabled() {
+        return notifyEnabled;
+    }
+    
+    public void setNotifyEnabled(boolean enabled) {
+        this.notifyEnabled = enabled;
+    }
+    
+    public void notifyObservers() {
+        if (!notifyEnabled) {
+            return;
+        }
+        
+        for (SlideObserver observer : observers) {
+            observer.update(this);
+        }
+    }
+}
 
 class XMLAccessorTest {
 
@@ -35,102 +145,13 @@ class XMLAccessorTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        MockitoAnnotations.openMocks(this);
         xmlAccessor = new XMLAccessor();
-        presentation = createPresentation();
+        presentation = new TestPresentation();
         
         // Initialize defaultStyle by loading a presentation with style
         File initFile = createTestXmlFile();
         xmlAccessor.loadPresentation(presentation, initFile.getAbsolutePath());
-        presentation = createPresentation(); // Create a fresh presentation for tests
-    }
-
-    private PresentationInterface createPresentation() {
-        return new PresentationInterface() {
-            private String title = "";
-            private List<Slide> slides = new ArrayList<>();
-            private int currentSlideIndex = 0;
-            private List<SlideObserver> observers = new ArrayList<>();
-
-            @Override
-            public String getTitle() {
-                return title;
-            }
-
-            @Override
-            public void setTitle(String title) {
-                this.title = title;
-            }
-
-            @Override
-            public void addSlide(Slide slide) {
-                slides.add(slide);
-            }
-
-            @Override
-            public int getSlideCount() {
-                return slides.size();
-            }
-
-            @Override
-            public List<Slide> getSlides() {
-                return slides;
-            }
-
-            @Override
-            public void addObserver(SlideObserver observer) {
-                observers.add(observer);
-            }
-
-            @Override
-            public void removeObserver(SlideObserver observer) {
-                observers.remove(observer);
-            }
-
-            @Override
-            public Slide getCurrentSlide() {
-                return slides.isEmpty() ? null : slides.get(currentSlideIndex);
-            }
-
-            @Override
-            public void previousSlide() {
-                if (currentSlideIndex > 0) {
-                    currentSlideIndex--;
-                    notifyObservers();
-                }
-            }
-
-            @Override
-            public void nextSlide() {
-                if (currentSlideIndex < slides.size() - 1) {
-                    currentSlideIndex++;
-                    notifyObservers();
-                }
-            }
-
-            @Override
-            public void setCurrentSlideIndex(int index) {
-                if (index >= 0 && index < slides.size()) {
-                    currentSlideIndex = index;
-                    notifyObservers();
-                }
-            }
-
-            @Override
-            public void copyFrom(PresentationInterface other) {
-                this.title = other.getTitle();
-                this.slides.clear();
-                this.slides.addAll(other.getSlides());
-                this.currentSlideIndex = 0;
-                notifyObservers();
-            }
-
-            private void notifyObservers() {
-                for (SlideObserver observer : observers) {
-                    observer.update(this);
-                }
-            }
-        };
+        presentation = new TestPresentation(); // Create a fresh presentation for tests
     }
 
     @Test
@@ -247,13 +268,12 @@ class XMLAccessorTest {
         java.nio.file.Files.write(xmlFile.toPath(), xmlContent.getBytes());
         return xmlFile;
     }
-
+    
     private Document parseXmlFile(File file) throws IOException {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             return builder.parse(file);
-        } catch (ParserConfigurationException | SAXException e) {
+        } catch (ParserConfigurationException | org.xml.sax.SAXException e) {
             throw new IOException("Error parsing XML file", e);
         }
     }

@@ -10,6 +10,7 @@ public class Presentation implements PresentationInterface {
     private List<Slide> slides;
     private int currentSlideIndex;
     private List<SlideObserver> observers;
+    private boolean notifyEnabled = true;
 
     public Presentation() {
         slides = new ArrayList<>();
@@ -41,6 +42,12 @@ public class Presentation implements PresentationInterface {
         if (slides.isEmpty()) {
             return null;
         }
+        
+        // Make sure currentSlideIndex is valid
+        if (currentSlideIndex < 0 || currentSlideIndex >= slides.size()) {
+            currentSlideIndex = 0; // Reset to first slide if out of bounds
+        }
+        
         return slides.get(currentSlideIndex);
     }
 
@@ -81,7 +88,22 @@ public class Presentation implements PresentationInterface {
         observers.remove(observer);
     }
 
-    private void notifyObservers() {
+    @Override
+    public boolean isNotifyEnabled() {
+        return notifyEnabled;
+    }
+
+    @Override
+    public void setNotifyEnabled(boolean enabled) {
+        this.notifyEnabled = enabled;
+    }
+
+    @Override
+    public void notifyObservers() {
+        if (!notifyEnabled) {
+            return;
+        }
+        
         for (SlideObserver observer : observers) {
             observer.update(this);
         }

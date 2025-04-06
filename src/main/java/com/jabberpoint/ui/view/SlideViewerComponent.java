@@ -1,23 +1,23 @@
 package com.jabberpoint.ui.view;
 
+import java.io.File;
+
+import com.jabberpoint.infrastructure.GraphicsContextWrapper;
+import com.jabberpoint.patterns.composite.BitmapItem;
+import com.jabberpoint.patterns.composite.BodyTextItem;
+import com.jabberpoint.patterns.composite.BulletPointItem;
 import com.jabberpoint.patterns.composite.PresentationInterface;
 import com.jabberpoint.patterns.composite.Slide;
 import com.jabberpoint.patterns.composite.SlideItem;
-import com.jabberpoint.patterns.composite.TitleItem;
 import com.jabberpoint.patterns.composite.SubtitleItem;
-import com.jabberpoint.patterns.composite.BodyTextItem;
-import com.jabberpoint.patterns.composite.BulletPointItem;
-import com.jabberpoint.patterns.composite.BitmapItem;
+import com.jabberpoint.patterns.composite.TitleItem;
 import com.jabberpoint.style.Style;
-import com.jabberpoint.infrastructure.GraphicsContextWrapper;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
-import javafx.scene.text.TextAlignment;
-import javafx.scene.text.Font;
 import javafx.scene.layout.StackPane;
-
-import java.io.File;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 public class SlideViewerComponent extends StackPane {
     private static final int DEFAULT_WIDTH = 800;
@@ -34,7 +34,6 @@ public class SlideViewerComponent extends StackPane {
     private Style defaultStyle;
     
     // Base font sizes for scaling
-    private static final double BASE_TITLE_FONT_SIZE = 40.0;
     private static final double BASE_BODY_FONT_SIZE = 20.0;
     
     // The canvas that will be used for drawing
@@ -90,12 +89,15 @@ public class SlideViewerComponent extends StackPane {
     }
     
     /**
-     * Create a scaled font based on the base font size and current scale factor
-     * @param baseSize The base font size
+     * Create a scaled font based on the Style's FontSize enum and current scale factor
+     * @param style The style containing the font size
      * @param fontName The font name
      * @return A scaled font
      */
-    private Font createScaledFont(double baseSize, String fontName) {
+    private Font createScaledFontFromStyle(Style style, String fontName) {
+        double baseSize = style.getFontSize() != null ? 
+                          style.getFontSize().getSize() : 
+                          BASE_BODY_FONT_SIZE;
         double scaleFactor = calculateScaleFactor();
         double scaledSize = baseSize * scaleFactor;
         return Font.font(fontName, scaledSize);
@@ -108,22 +110,42 @@ public class SlideViewerComponent extends StackPane {
 
     private Image loadImage(String path) {
         try {
+            // First try to load the resource from the classpath
+            String resourcePath = path;
+            
+            // If path starts with file: prefix, remove it
             if (path.startsWith("file:")) {
-                // Remove the file: prefix and create a proper URI
+                resourcePath = path.substring(5);
+            }
+            
+            // Try to load from classpath first
+            java.io.InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
+            if (inputStream != null) {
+                return new Image(inputStream);
+            }
+            
+            // If not found in classpath, try file system as fallback
+            if (path.startsWith("file:")) {
                 String filePath = path.substring(5);
                 File file = new File(filePath);
                 if (file.exists()) {
                     return new Image(file.toURI().toString());
                 }
             } else {
-                // Try loading as a regular file path
                 File file = new File(path);
                 if (file.exists()) {
                     return new Image(file.toURI().toString());
                 }
             }
-            // If the file doesn't exist, try loading from classpath
-            return new Image(getClass().getResourceAsStream("/" + path));
+            
+            // Last attempt - try with / prefix
+            inputStream = getClass().getClassLoader().getResourceAsStream("/" + resourcePath);
+            if (inputStream != null) {
+                return new Image(inputStream);
+            }
+            
+            System.err.println("Could not find image: " + path);
+            return null;
         } catch (Exception e) {
             System.err.println("Error loading image: " + path);
             e.printStackTrace();
@@ -157,7 +179,31 @@ public class SlideViewerComponent extends StackPane {
         if (backgroundPath != null && !backgroundPath.isEmpty()) {
             Image backgroundImage = loadImage(backgroundPath);
             if (backgroundImage != null) {
-                graphicsContext.drawImage(backgroundImage, 0, 0, width, height);
+                // Calculate dimensions to cover the canvas while preserving aspect ratio
+                double imgWidth = backgroundImage.getWidth();
+                double imgHeight = backgroundImage.getHeight();
+                
+                double canvasRatio = width / height;
+                double imageRatio = imgWidth / imgHeight;
+                
+                double drawWidth, drawHeight;
+                double x = 0, y = 0;
+                
+                if (canvasRatio > imageRatio) {
+                    // Canvas is wider than image (relative to height)
+                    // Use width to cover the canvas and center vertically
+                    drawWidth = width;
+                    drawHeight = width / imageRatio;
+                    y = (height - drawHeight) / 2;
+                } else {
+                    // Canvas is taller than image (relative to width)
+                    // Use height to cover the canvas and center horizontally
+                    drawHeight = height;
+                    drawWidth = height * imageRatio;
+                    x = (width - drawWidth) / 2;
+                }
+                
+                graphicsContext.drawImage(backgroundImage, x, y, drawWidth, drawHeight);
             } else {
                 // If background image fails to load, use a solid color
                 graphicsContext.setFill(javafx.scene.paint.Color.BLACK);
@@ -184,7 +230,7 @@ public class SlideViewerComponent extends StackPane {
                 }
                 
                 // Create a scaled font for the title
-                Font scaledTitleFont = createScaledFont(BASE_TITLE_FONT_SIZE, itemStyle.getTitleFontName().name());
+                Font scaledTitleFont = createScaledFontFromStyle(itemStyle, itemStyle.getTitleFontName().name());
                 graphicsContext.setFont(scaledTitleFont);
                 graphicsContext.setFill(itemStyle.getTitleColor().getColor());
                 graphicsContext.setTextAlign(TextAlignment.CENTER);
@@ -204,7 +250,7 @@ public class SlideViewerComponent extends StackPane {
                 }
                 
                 // Create a scaled font for the subtitle
-                Font scaledSubtitleFont = createScaledFont(BASE_TITLE_FONT_SIZE, itemStyle.getTitleFontName().name());
+                Font scaledSubtitleFont = createScaledFontFromStyle(itemStyle, itemStyle.getTitleFontName().name());
                 graphicsContext.setFont(scaledSubtitleFont);
                 graphicsContext.setFill(itemStyle.getTitleColor().getColor());
                 graphicsContext.setTextAlign(TextAlignment.LEFT);
@@ -218,7 +264,7 @@ public class SlideViewerComponent extends StackPane {
                 }
                 
                 // Create a scaled font for the body text
-                Font scaledBodyFont = createScaledFont(BASE_BODY_FONT_SIZE, itemStyle.getBodyFontName().name());
+                Font scaledBodyFont = createScaledFontFromStyle(itemStyle, itemStyle.getBodyFontName().name());
                 graphicsContext.setFont(scaledBodyFont);
                 graphicsContext.setFill(itemStyle.getBodyColor().getColor());
                 graphicsContext.setTextAlign(TextAlignment.LEFT);
@@ -232,7 +278,7 @@ public class SlideViewerComponent extends StackPane {
                 }
                 
                 // Create a scaled font for the bullet points
-                Font scaledBulletFont = createScaledFont(BASE_BODY_FONT_SIZE, itemStyle.getBodyFontName().name());
+                Font scaledBulletFont = createScaledFontFromStyle(itemStyle, itemStyle.getBodyFontName().name());
                 graphicsContext.setFont(scaledBulletFont);
                 graphicsContext.setFill(itemStyle.getBodyColor().getColor());
                 graphicsContext.setTextAlign(TextAlignment.LEFT);
