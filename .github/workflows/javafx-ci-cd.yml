@@ -6,8 +6,16 @@ on:
       - development
       - acceptance
       - test
+      - production
+  pull_request:
+    types: [closed]
+    branches:
+      - acceptance
+      - test
+      - production
 
 jobs:
+  # DEVELOPMENT BRANCH WORKFLOW
   build-development:
     if: github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
@@ -21,24 +29,25 @@ jobs:
           cache: maven
       - name: "Build with Maven"
         run: mvn clean verify
-
-  pr-development-to-acceptance:
-    if: github.ref == 'refs/heads/development'
-    needs: build-development
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: "Create PR: development -> acceptance"
+      - name: "Create PR from development to acceptance"
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: acceptance
-          branch: "pr-acceptance-${{ github.run_number }}"
+          commit-message: "PR from development to acceptance"
           title: "Merge development into acceptance"
-          body: "Automated pull request from development to acceptance."
+          body: |
+            This PR was automatically created by the CI/CD workflow.
+            
+            Development build has passed verification and is ready for review.
+            
+            Once merged, the acceptance workflow will automatically run.
+          branch: "auto-pr-dev-to-acceptance"
+          base: "acceptance"
+          delete-branch: true
 
+  # ACCEPTANCE BRANCH WORKFLOW - Runs on push OR when PR is merged
   acceptance-ci:
-    if: github.ref == 'refs/heads/acceptance'
+    if: (github.ref == 'refs/heads/acceptance') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'acceptance')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,24 +59,25 @@ jobs:
           cache: maven
       - name: "Run Checkstyle"
         run: mvn checkstyle:check
-
-  pr-acceptance-to-test:
-    if: github.ref == 'refs/heads/acceptance'
-    needs: acceptance-ci
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: "Create PR: acceptance -> test"
+      - name: "Create PR from acceptance to test"
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: test
-          branch: "pr-test-${{ github.run_number }}"
+          commit-message: "PR from acceptance to test"
           title: "Merge acceptance into test"
-          body: "Automated pull request from acceptance to test."
+          body: |
+            This PR was automatically created by the CI/CD workflow.
+            
+            Acceptance checkstyle checks have passed and code is ready for testing.
+            
+            Once merged, the test workflow will automatically run.
+          branch: "auto-pr-acceptance-to-test"
+          base: "test"
+          delete-branch: true
 
+  # TEST BRANCH WORKFLOW - Runs on push OR when PR is merged
   test-ci:
-    if: github.ref == 'refs/heads/test'
+    if: (github.ref == 'refs/heads/test') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'test')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -79,18 +89,33 @@ jobs:
           cache: maven
       - name: "Run Unit Tests"
         run: mvn test
-
-  pr-test-to-production:
-    if: github.ref == 'refs/heads/test'
-    needs: test-ci
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: "Create PR: test -> production"
+      - name: "Create PR from test to production"
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: production
-          branch: "pr-production-${{ github.run_number }}"
+          commit-message: "PR from test to production"
           title: "Merge test into production"
-          body: "Automated pull request from test to production."
+          body: |
+            This PR was automatically created by the CI/CD workflow.
+            
+            Tests have passed successfully and code is ready for production.
+            
+            Once merged, the production workflow will automatically run.
+          branch: "auto-pr-test-to-production"
+          base: "production"
+          delete-branch: true
+
+  # PRODUCTION BRANCH WORKFLOW - Runs on push OR when PR is merged
+  production-deploy:
+    if: (github.ref == 'refs/heads/production') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'production')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set up JDK 11"
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      - name: "Build production package"
+        run: mvn clean package
