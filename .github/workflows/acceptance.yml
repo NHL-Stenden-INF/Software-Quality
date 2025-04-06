@@ -24,67 +24,10 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-
-      - name: "Extract version from pom.xml"
-        id: version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "Current version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
-      - name: "Update to RC version"
-        id: rc_version
-        run: |
-          # Extract components
-          CURRENT_VERSION=${{ steps.version.outputs.version }}
-          
-          # Handle versions in format MAJOR.MINOR-SNAPSHOT
-          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
-            MAJOR="${BASH_REMATCH[1]}"
-            MINOR="${BASH_REMATCH[2]}"
-            
-            # Change to RC version for acceptance
-            NEW_VERSION="$MAJOR.$MINOR-RC"
-            
-            echo "RC version: $NEW_VERSION"
-            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-            
-            # Update pom.xml with new version
-            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
-          # Handle versions in format MAJOR.MINOR.PATCH-SNAPSHOT
-          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
-            MAJOR="${BASH_REMATCH[1]}"
-            MINOR="${BASH_REMATCH[2]}"
-            PATCH="${BASH_REMATCH[3]}"
-            
-            # Change to RC version for acceptance
-            NEW_VERSION="$MAJOR.$MINOR.$PATCH-RC"
-            
-            echo "RC version: $NEW_VERSION"
-            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-            
-            # Update pom.xml with new version
-            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
-          # Already RC version, no change needed
-          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-RC) ]] || [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-RC) ]]; then
-            echo "Version already has RC suffix: $CURRENT_VERSION"
-            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "Failed to parse version: $CURRENT_VERSION"
-            exit 1
-          fi
           
       - name: "Run Checkstyle"
         run: mvn checkstyle:check
         
-      - name: "Commit version changes and push"
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git add pom.xml
-          git commit -m "Update version to ${{ steps.rc_version.outputs.new_version }}" || echo "No changes to commit"
-          git push origin acceptance
-          
       - name: "Create PR from acceptance to test"
         uses: peter-evans/create-pull-request@v5
         with:
@@ -95,7 +38,6 @@ jobs:
             This PR was automatically created by the CI/CD workflow.
             
             Acceptance checkstyle checks have passed and code is ready for testing.
-            Version updated to: ${{ steps.rc_version.outputs.new_version }}
             
             Once merged, the test workflow will automatically run.
           branch: "auto-pr-acceptance-to-test"

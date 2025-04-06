@@ -19,9 +19,6 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-          
-      # Remove version bumping from development workflow
-      # We only want to build and verify at this stage
       
       - name: "Build with Maven"
         run: mvn clean verify

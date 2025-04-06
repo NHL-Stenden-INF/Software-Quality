@@ -32,40 +32,6 @@ jobs:
           echo "Current version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
-      - name: "Prepare for next development version"
-        id: next_dev_version
-        run: |
-          # Extract components
-          CURRENT_VERSION=${{ steps.version.outputs.version }}
-          
-          # Handle versions in format MAJOR.MINOR
-          if [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)$ ]]; then
-            MAJOR="${BASH_REMATCH[1]}"
-            MINOR="${BASH_REMATCH[2]}"
-            
-            # For the next dev cycle, increment minor version
-            NEW_MINOR=$((MINOR + 1))
-            NEW_VERSION="$MAJOR.$NEW_MINOR-SNAPSHOT"
-            
-            echo "Next development version: $NEW_VERSION"
-            echo "next_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          # Handle versions in format MAJOR.MINOR.PATCH
-          elif [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            MAJOR="${BASH_REMATCH[1]}"
-            MINOR="${BASH_REMATCH[2]}"
-            PATCH="${BASH_REMATCH[3]}"
-            
-            # For the next dev cycle, increment minor version and reset patch
-            NEW_MINOR=$((MINOR + 1))
-            NEW_VERSION="$MAJOR.$NEW_MINOR.0-SNAPSHOT"
-            
-            echo "Next development version: $NEW_VERSION"
-            echo "next_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "Failed to parse version: $CURRENT_VERSION"
-            exit 1
-          fi
-          
       - name: "Build production package"
         run: mvn clean package
         
@@ -87,18 +53,3 @@ jobs:
           git config --global user.email 'actions@github.com'
           git tag -a v${{ steps.version.outputs.version }} -m "Release version ${{ steps.version.outputs.version }}"
           git push origin v${{ steps.version.outputs.version }}
-          
-      - name: "Prepare development branch for next cycle"
-        if: success()
-        run: |
-          # Checkout development branch
-          git fetch origin development
-          git checkout -b development origin/development
-          
-          # Update version for next development cycle
-          mvn versions:set -DnewVersion=${{ steps.next_dev_version.outputs.next_version }} -DgenerateBackupPoms=false
-          
-          # Commit and push changes
-          git add pom.xml
-          git commit -m "Start next development cycle with version ${{ steps.next_dev_version.outputs.next_version }}"
-          git push origin development
