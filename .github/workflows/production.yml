@@ -51,5 +51,10 @@ jobs:
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-          git tag -a v${{ steps.version.outputs.version }} -m "Release version ${{ steps.version.outputs.version }}"
-          git push origin v${{ steps.version.outputs.version }}
+          # Check if tag exists in remote
+          if ! git ls-remote --tags origin | grep -q "refs/tags/v${{ steps.version.outputs.version }}"; then
+            git tag -a v${{ steps.version.outputs.version }} -m "Release version ${{ steps.version.outputs.version }}"
+            git push origin v${{ steps.version.outputs.version }}
+          else
+            echo "Tag v${{ steps.version.outputs.version }} already exists, skipping tag creation."
+          fi
