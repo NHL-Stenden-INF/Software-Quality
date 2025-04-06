@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<presentation title="Portrait Photography">
+    <!-- Global Style -->
+
+    <!-- Slide 1: Welcome -->
+    <slide title="The Art of Portrait Photography" background="file:resources/images/portrait-bg.jpg">
+        <title fontName="ARIAL" fontSize="EXTRA_LARGE" fontColor="WHITE">The Art of Portrait Photography</title>
+    </slide>
+
+    <!-- Slide 2: Basic Principles -->
+    <slide title="Basic Principles" background="file:resources/images/portrait-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="WHITE">Essential Portrait Techniques</subtitle>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Lighting is key: Natural vs. Studio</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Perfect focal length: 85-135mm</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Depth of field: Creating separation</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Posing fundamentals: Natural expressions</bullet>
+        </bulletPoints>
+        <bitmap fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">file:resources/images/portrait.jpg</bitmap>
+    </slide>
+
+    <!-- Slide 3: Lighting Techniques -->
+    <slide title="Lighting Techniques" background="file:resources/images/portrait-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="WHITE">Creating the Perfect Light</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">
+            Lighting makes or breaks a portrait. Learn these classic setups:
+        </bodyText>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Loop lighting: The most versatile</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Rembrandt: Classic with triangle of light</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Butterfly: Glamour lighting</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Split lighting: Dramatic effect</bullet>
+        </bulletPoints>
+    </slide>
+
+    <!-- Slide 4: Post-Processing -->
+    <slide title="Post-Processing" background="file:resources/images/portrait-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="WHITE">Enhancing Your Portraits</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">
+            Great portraits can be elevated with thoughtful editing:
+        </bodyText>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Skin retouching: Subtle is better</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Color grading: Creating mood</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Dodging and burning: Enhancing form</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Exporting for various media</bullet>
+        </bulletPoints>
+        <bitmap fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">file:resources/images/lightroom.png</bitmap>
+    </slide>
+</presentation> 

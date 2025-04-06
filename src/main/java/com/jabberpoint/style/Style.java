@@ -10,6 +10,7 @@ public class Style {
     private FontName bodyFontName;
     private FontColor titleColor;
     private FontColor bodyColor;
+    private FontSize fontSize = FontSize.MEDIUM; // Default font size
 
     public Style() {
         this.titleFontName = FontName.ARIAL;
@@ -65,13 +66,21 @@ public class Style {
         this.bodyColor = color;
     }
     
+    public FontSize getFontSize() {
+        return fontSize;
+    }
+    
+    public void setFontSize(FontSize fontSize) {
+        this.fontSize = fontSize;
+    }
+    
     // Methods for compatibility with existing code
     public FontName getFontName() {
         return bodyFontName;
     }
     
-    public double getFontSize() {
-        return BODY_FONT_SIZE;
+    public double getFontSizeValue() {
+        return fontSize != null ? fontSize.getSize() : BODY_FONT_SIZE;
     }
     
     public FontColor getFontColor() {
