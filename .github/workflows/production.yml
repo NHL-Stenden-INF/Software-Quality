@@ -37,16 +37,18 @@ jobs:
         
       - name: "Publish to GitHub Packages"
         run: |
-          # Check if artifact already exists in GitHub Packages
-          ARTIFACT_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://maven.pkg.github.com/NHL-Stenden-INF/Software-Quality/com/jabberpoint/jabberpoint/${{ steps.version.outputs.version }}/jabberpoint-${{ steps.version.outputs.version }}.pom")
-          
-          if [ "$ARTIFACT_EXISTS" == "200" ]; then
-            echo "Artifact version ${{ steps.version.outputs.version }} already exists in GitHub Packages, skipping deployment."
-          else
-            mvn deploy -DskipTests
-          fi
+          # Try to deploy and capture output
+          OUTPUT=$(mvn deploy -DskipTests 2>&1) || {
+            # Check if the error was due to 409 Conflict
+            if echo "$OUTPUT" | grep -q "status code: 409"; then
+              echo "Artifact already exists in GitHub Packages. Continuing workflow..."
+              exit 0
+            else
+              # If it was a different error, show output and fail
+              echo "$OUTPUT"
+              exit 1
+            fi
+          }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
