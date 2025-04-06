@@ -98,4 +98,76 @@ jobs:
             Once merged, the test workflow will automatically run.
           branch: "auto-pr-acceptance-to-test"
           base: "test"
-          delete-branch: true 
+          delete-branch: true
+
+      - name: Version Update Sequence
+        run: |
+          # Setup git
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          
+          # Fetch and rebase
+          git fetch origin test
+          
+          # Stash any current changes
+          git stash
+          
+          # Pull with strategy to resolve version conflicts
+          git pull origin test --strategy-option=theirs
+          
+          # Apply stashed changes (version update) and handle conflicts
+          git stash pop || true
+          
+          # Extract version from pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          
+          # Remove RC suffix for final version
+          if [[ $CURRENT_VERSION =~ (.*)-RC ]]; then
+            FINAL_VERSION="${BASH_REMATCH[1]}"
+            echo "Updating from $CURRENT_VERSION to $FINAL_VERSION"
+            
+            # Update version
+            mvn versions:set -DnewVersion=$FINAL_VERSION -DgenerateBackupPoms=false
+            
+            # Commit and push with force-with-lease (safer than force push)
+            git add pom.xml
+            git commit -m "Finalize version to $FINAL_VERSION"
+            git push origin test --force-with-lease
+          else
+            echo "Version $CURRENT_VERSION doesn't have RC suffix, skipping update"
+          fi
+
+      - name: "Prepare for next development version"
+        run: |
+          # Extract current version
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Improved version parsing with regex to handle RC suffix
+          if [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)(.*)?$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            SUFFIX="${BASH_REMATCH[3]}" # Captures -RC or any other suffix
+            
+            echo "Parsed version: Major=$MAJOR, Minor=$MINOR, Suffix=$SUFFIX"
+            
+            # Increment minor version
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="$MAJOR.$NEW_MINOR-RC"
+            
+            echo "Incrementing to next development version: $NEW_VERSION"
+            
+            # Update pom.xml with new version
+            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+            
+            # Commit and push
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'actions@github.com'
+            git add pom.xml
+            git commit -m "Prepare for next development version $NEW_VERSION"
+            git push origin main
+          else
+            echo "Failed to parse version: $CURRENT_VERSION"
+            echo "Expected format: MAJOR.MINOR or MAJOR.MINOR-suffix"
+            exit 1
+          fi 
