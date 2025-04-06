@@ -7,7 +7,7 @@ import com.jabberpoint.style.Style;
 import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
 
-public class SlideViewerFrame extends BorderPane implements SlideObserver {
+public class SlideViewerFrame extends BorderPane implements SlideObserver, ViewInterface {
     private final SlideViewerComponent viewerComponent;
     private final PresentationInterface presentation;
 
@@ -24,6 +24,7 @@ public class SlideViewerFrame extends BorderPane implements SlideObserver {
         presentation.addObserver(this);
     }
 
+    @Override
     public void updateView() {
         viewerComponent.update(presentation);
     }

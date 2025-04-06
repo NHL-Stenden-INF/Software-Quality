@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<presentation title="Landscape Photography">
+    <!-- Global Style -->
+    <style fontName="ARIAL" fontSize="MEDIUM" fontColor="BLACK"/>
+
+    <!-- Slide 1: Welcome -->
+    <slide title="The Beauty of Landscape Photography" background="file:resources/images/landscape-bg.jpg">
+        <title fontName="ARIAL" fontSize="EXTRA_LARGE" fontColor="BLACK">The Beauty of Landscape Photography</title>
+    </slide>
+
+    <!-- Slide 2: Essential Equipment -->
+    <slide title="Essential Equipment" background="file:resources/images/landscape-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="BLACK">What You Need in Your Bag</subtitle>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Wide-angle lenses (16-35mm)</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Sturdy tripod for stability</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Filters: ND, Polarizers, Graduated ND</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Remote shutter release</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Weather protection gear</bullet>
+        </bulletPoints>
+        <bitmap fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">file:resources/images/lens.png</bitmap>
+    </slide>
+
+    <!-- Slide 3: Composition Techniques -->
+    <slide title="Composition Techniques" background="file:resources/images/landscape-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="BLACK">Creating Impactful Images</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">
+            Great landscapes rely on thoughtful composition:
+        </bodyText>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Rule of thirds: Balance your scene</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Leading lines: Guide the viewer's eye</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Foreground interest: Add depth</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Golden hour: Best light of the day</bullet>
+        </bulletPoints>
+    </slide>
+
+    <!-- Slide 4: Post-Processing for Landscapes -->
+    <slide title="Post-Processing for Landscapes" background="file:resources/images/landscape-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="BLACK">Bringing Your Vision to Life</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">
+            Enhance your landscape photos with these editing techniques:
+        </bodyText>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Exposure blending: Handle dynamic range</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Luminosity masks: Targeted adjustments</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Color harmony: Creating mood</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="BLACK">Sharpening: Enhancing detail</bullet>
+        </bulletPoints>
+    </slide>
+</presentation> 

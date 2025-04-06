@@ -1,7 +1,8 @@
 package com.jabberpoint.patterns.composite;
 
-import com.jabberpoint.style.Style;
 import com.jabberpoint.infrastructure.GraphicsContextWrapper;
+import com.jabberpoint.style.Style;
+
 import javafx.scene.text.Font;
 
 public class BulletPointItem extends SlideItem {
@@ -16,7 +17,7 @@ public class BulletPointItem extends SlideItem {
         gc.fillOval(x - 10, y - 5, 5, 5);
 
         // Draw text
-        Font font = Font.font(style.getFontName().toString(), style.getFontSize());
+        Font font = Font.font(style.getFontName().toString(), style.getFontSizeValue());
         gc.setFont(font);
         gc.fillText(getText(), x, y);
     }

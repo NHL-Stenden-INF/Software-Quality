@@ -1,0 +1,93 @@
+name: Development Workflow
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  build-development:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set up JDK 11"
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: "Extract version from pom.xml"
+        id: version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: "Bump development version"
+        id: bump_version
+        run: |
+          # Extract components
+          CURRENT_VERSION=${{ steps.version.outputs.version }}
+          
+          # Handle versions in format MAJOR.MINOR-SNAPSHOT
+          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            
+            # For MAJOR.MINOR format, increment minor version
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="$MAJOR.$NEW_MINOR-SNAPSHOT"
+            
+            echo "New version: $NEW_VERSION"
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            
+            # Update pom.xml with new version
+            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          # Handle versions in format MAJOR.MINOR.PATCH-SNAPSHOT
+          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            
+            # Increment patch version for development
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH-SNAPSHOT"
+            
+            echo "New version: $NEW_VERSION"
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            
+            # Update pom.xml with new version
+            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          else
+            echo "Failed to parse version: $CURRENT_VERSION"
+            exit 1
+          fi
+          
+      - name: "Build with Maven"
+        run: mvn clean verify
+        
+      - name: "Commit version changes"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add pom.xml
+          git commit -m "Bump version to ${{ steps.bump_version.outputs.new_version }}" || echo "No changes to commit"
+          git push
+          
+      - name: "Create PR from development to acceptance"
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "PR from development to acceptance"
+          title: "Merge development into acceptance"
+          body: |
+            This PR was automatically created by the CI/CD workflow.
+            
+            Development build has passed verification and is ready for review.
+            Version bumped to: ${{ steps.bump_version.outputs.new_version }}
+            
+            Once merged, the acceptance workflow will automatically run.
+          branch: "auto-pr-dev-to-acceptance"
+          base: "acceptance"
+          delete-branch: true 

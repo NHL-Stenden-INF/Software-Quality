@@ -1,6 +1,7 @@
 package com.jabberpoint.patterns.composite;
 
 import java.util.List;
+
 import com.jabberpoint.patterns.observer.SlideObserver;
 
 /**
@@ -77,4 +78,21 @@ public interface PresentationInterface {
      * @param other The presentation to copy from
      */
     void copyFrom(PresentationInterface other);
+
+    /**
+     * Check if observer notifications are enabled
+     * @return true if notifications are enabled, false otherwise
+     */
+    boolean isNotifyEnabled();
+
+    /**
+     * Enable or disable observer notifications
+     * @param enabled true to enable notifications, false to disable
+     */
+    void setNotifyEnabled(boolean enabled);
+
+    /**
+     * Manually trigger observer notifications
+     */
+    void notifyObservers();
 } 

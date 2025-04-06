@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<presentation title="Street Photography">
+    <!-- Global Style -->
+    <style fontName="ARIAL" fontSize="MEDIUM" fontColor="WHITE"/>
+
+    <!-- Slide 1: Welcome -->
+    <slide title="The Art of Street Photography" background="file:resources/images/street-bg.jpg">
+        <title fontName="ARIAL" fontSize="EXTRA_LARGE" fontColor="WHITE">The Art of Street Photography</title>
+    </slide>
+
+    <!-- Slide 2: Gear and Approach -->
+    <slide title="Gear and Approach" background="file:resources/images/street-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="WHITE">Tools of the Trade</subtitle>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Discreet cameras: Compact or rangefinders</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Fast prime lenses: 28mm, 35mm, 50mm</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Zone focusing: Quick reactions</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Stealth techniques: Being unobtrusive</bullet>
+        </bulletPoints>
+        <bitmap fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">file:resources/images/street-gear.jpg</bitmap>
+    </slide>
+
+    <!-- Slide 3: Finding the Decisive Moment -->
+    <slide title="Finding the Decisive Moment" background="file:resources/images/street-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="WHITE">Capturing Life As It Happens</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">
+            Henri Cartier-Bresson defined the "decisive moment" - when form and content align:
+        </bodyText>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Anticipating action: Read the scene</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Human interaction: Relationships</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Juxtaposition: Contrasting elements</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Light and shadow: Creating drama</bullet>
+        </bulletPoints>
+    </slide>
+
+    <!-- Slide 4: Legal and Ethical Considerations -->
+    <slide title="Legal and Ethical Considerations" background="file:resources/images/street-bg.jpg">
+        <subtitle fontName="ARIAL" fontSize="MEDIUM" fontColor="WHITE">Respecting Subjects and the Law</subtitle>
+        <bodyText fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">
+            Street photography involves ethical considerations:
+        </bodyText>
+        <bulletPoints>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Know local laws: Public vs. private space</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Respect dignity: When not to shoot</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Editing practices: Truth in documentation</bullet>
+            <bullet fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">Sharing your work: Publications and media</bullet>
+        </bulletPoints>
+        <bitmap fontName="ARIAL" fontSize="SMALL" fontColor="WHITE">file:resources/images/street.jpg</bitmap>
+    </slide>
+</presentation> 

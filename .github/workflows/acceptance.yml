@@ -1,0 +1,96 @@
+name: Acceptance Workflow
+
+on:
+  push:
+    branches:
+      - acceptance
+  pull_request:
+    types: [closed]
+    branches:
+      - acceptance
+
+jobs:
+  acceptance-ci:
+    if: (github.ref == 'refs/heads/acceptance') || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'acceptance')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set up JDK 11"
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: "Extract version from pom.xml"
+        id: version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: "Update to RC version"
+        id: rc_version
+        run: |
+          # Extract components
+          CURRENT_VERSION=${{ steps.version.outputs.version }}
+          
+          # Handle versions in format MAJOR.MINOR-SNAPSHOT
+          if [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            
+            # Change to RC version for acceptance
+            NEW_VERSION="$MAJOR.$MINOR-RC"
+            
+            echo "RC version: $NEW_VERSION"
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            
+            # Update pom.xml with new version
+            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          # Handle versions in format MAJOR.MINOR.PATCH-SNAPSHOT
+          elif [[ $CURRENT_VERSION =~ ([0-9]+)\.([0-9]+)\.([0-9]+)(-SNAPSHOT)? ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            
+            # Change to RC version for acceptance
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH-RC"
+            
+            echo "RC version: $NEW_VERSION"
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            
+            # Update pom.xml with new version
+            mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          else
+            echo "Failed to parse version: $CURRENT_VERSION"
+            exit 1
+          fi
+          
+      - name: "Run Checkstyle"
+        run: mvn checkstyle:check
+        
+      - name: "Commit version changes"
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add pom.xml
+          git commit -m "Update version to ${{ steps.rc_version.outputs.new_version }}" || echo "No changes to commit"
+          git push
+          
+      - name: "Create PR from acceptance to test"
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "PR from acceptance to test"
+          title: "Merge acceptance into test"
+          body: |
+            This PR was automatically created by the CI/CD workflow.
+            
+            Acceptance checkstyle checks have passed and code is ready for testing.
+            Version updated to: ${{ steps.rc_version.outputs.new_version }}
+            
+            Once merged, the test workflow will automatically run.
+          branch: "auto-pr-acceptance-to-test"
+          base: "test"
+          delete-branch: true 
