@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.jabberpoint.infrastructure.XMLAccessor;
 import com.jabberpoint.patterns.command.Command;
+import com.jabberpoint.patterns.command.ExitCommand;
 import com.jabberpoint.patterns.command.GoToSlideCommand;
 import com.jabberpoint.patterns.command.LoadDefaultCommand;
 import com.jabberpoint.patterns.command.LoadLandscapeCommand;
@@ -118,7 +119,7 @@ public class MenuController {
     }
 
     private void handleExit() {
-        stage.close();
+        executeCommand(new ExitCommand(stage));
     }
 
     private void handleGoTo() {
