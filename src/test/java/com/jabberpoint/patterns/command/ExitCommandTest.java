@@ -6,6 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.security.Permission;
+import static org.mockito.Mockito.*;
+import javafx.stage.Stage;
 
 class ExitCommandTest {
     private static class ExitException extends SecurityException {
@@ -48,18 +50,10 @@ class ExitCommandTest {
     }
 
     @Test
-    void execute_ShouldCallSystemExit() {
-        ExitCommand command = new ExitCommand();
-        
-        try {
-            command.execute();
-        } catch (ExitException e) {
-            // Expected exception
-            assertEquals(0, e.getStatus(), "Exit status should be 0");
-            return;
-        }
-        
-        // If we get here, no ExitException was thrown
-        assertTrue(false, "System.exit() was not called");
+    void execute_ShouldCallStageClose() {
+        Stage mockStage = mock(Stage.class);
+        ExitCommand command = new ExitCommand(mockStage);
+        command.execute();
+        verify(mockStage, times(1)).close();
     }
 } 
